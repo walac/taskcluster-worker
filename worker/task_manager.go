@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"fmt"
 	"math"
 	"sync"
 	"time"
@@ -26,13 +27,14 @@ type task struct {
 // time and are aborted if a cancellation message is received.
 type Manager struct {
 	sync.Mutex
-	Tasks         []*task
+	Tasks         []*runtime.TaskContextController
 	stop          chan bool
 	maxCapacity   int
 	engine        *engines.Engine
+	environment   *runtime.Environment
 	log           *logrus.Entry
 	queue         *queueService
-	provisionerID string
+	provisionerId string
 	workerGroup   string
 	workerId      string
 }
@@ -71,19 +73,16 @@ func (m *Manager) claimWork(ntasks int) {
 	}
 
 	claims := m.queue.ClaimWork(ntasks)
-	m.Lock()
 	for _, c := range claims {
-		t := &task{
-			taskId: c.TaskId,
-			runId:  c.RunId,
-			claim:  c.TaskClaimResponse,
-		}
+		ctx, ctrlr, error := runtime.NewTaskContext(m.environment.TemporaryStorage.NewFilePath())
 	}
+
+	fmt.Println(claims)
 }
 
 // Create a new instance of the task manager that will be responsible for claiming,
 // executing, and resolving units of work (tasks).
-func New(config *config.Config, engine *engines.Engine, log *logrus.Entry) *Manager {
+func New(config *config.Config, engine *engines.Engine, environment *runtime.Environment, log *logrus.Entry) *Manager {
 	queue := tcqueue.New(
 		&tcclient.Credentials{
 			ClientId:    config.Credentials.ClientId,
@@ -101,6 +100,7 @@ func New(config *config.Config, engine *engines.Engine, log *logrus.Entry) *Mana
 
 	return &Manager{
 		engine:        engine,
+		environment:   environment,
 		log:           log,
 		maxCapacity:   config.Capacity,
 		queue:         service,

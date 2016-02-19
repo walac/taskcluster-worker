@@ -35,17 +35,6 @@ type (
 		MessageText  string `xml:"MessageText"`
 	}
 
-	// TaskId and RunId are taken from the json encoding of
-	// queueMessage.MessageId that we get back from Azure
-	TaskRun struct {
-		TaskId              string                         `json:"taskId"`
-		RunId               uint                           `json:"runId"`
-		SignedDeleteUrl     string                         `json:"-"`
-		TaskClaimResponse   tcqueue.TaskClaimResponse      `json:"-"`
-		TaskReclaimResponse tcqueue.TaskReclaimResponse    `json:"-"`
-		Definition          tcqueue.TaskDefinitionResponse `json:"-"`
-	}
-
 	taskQueue struct {
 		SignedDeleteUrl string `json:"signedDeleteUrl"`
 		SignedPollUrl   string `json:"signedPollUrl"`

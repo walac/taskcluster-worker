@@ -12,7 +12,7 @@ import (
 	"github.com/taskcluster/taskcluster-worker/config"
 	"github.com/taskcluster/taskcluster-worker/engines/extpoints"
 	"github.com/taskcluster/taskcluster-worker/runtime"
-	"github.com/taskcluster/taskcluster-worker/taskmgr"
+	"github.com/taskcluster/taskcluster-worker/worker"
 )
 
 const version = "taskcluster-worker 0.0.1"
@@ -93,8 +93,8 @@ func main() {
 		},
 	}
 
-	taskManager := taskmgr.New(config, &engine, logger.WithField("component", "Task Manager"))
+	w := worker.New(config, &engine, &runtimeEnvironment, logger.WithField("component", "Task Manager"))
 
-	runtimeEnvironment.Log.Debugf("Created taskManager %+v", taskManager)
+	runtimeEnvironment.Log.Debugf("Created worker %+v", w)
 	runtimeEnvironment.Log.Info("Worker started up")
 }

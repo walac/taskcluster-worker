@@ -601,12 +601,11 @@ func TestClaimTask(t *testing.T) {
 	}, &tcclient.CallSummary{}, nil)
 
 	task := &TaskRun{
-		TaskId:              "abc",
-		RunId:               0,
-		SignedDeleteUrl:     fmt.Sprintf("%s/delete", s.URL),
-		TaskClaimResponse:   queue.TaskClaimResponse{},
-		TaskReclaimResponse: queue.TaskReclaimResponse{},
-		Definition:          queue.TaskDefinitionResponse{},
+		TaskId:          "abc",
+		RunId:           0,
+		SignedDeleteUrl: fmt.Sprintf("%s/delete", s.URL),
+		TaskClaim:       queue.TaskClaimResponse{},
+		Definition:      queue.TaskDefinitionResponse{},
 	}
 
 	logger, _ := runtime.CreateLogger(os.Getenv("LOGGING_LEVEL"))
@@ -624,7 +623,7 @@ func TestClaimTask(t *testing.T) {
 	assert.True(t, deleteCalled)
 	// Do a quick sanity check to make sure the response was correctly stored in
 	// the task run object
-	assert.Equal(t, "1040824383284384", task.TaskClaimResponse.Credentials.AccessToken)
+	assert.Equal(t, "1040824383284384", task.TaskClaim.Credentials.AccessToken)
 }
 
 func TestClaimTaskError(t *testing.T) {
@@ -657,12 +656,11 @@ func TestClaimTaskError(t *testing.T) {
 			HttpResponse: &http.Response{StatusCode: 401},
 		}, errors.New("Not good"))
 	task := &TaskRun{
-		TaskId:              "abc",
-		RunId:               0,
-		SignedDeleteUrl:     fmt.Sprintf("%s/delete", s.URL),
-		TaskClaimResponse:   queue.TaskClaimResponse{},
-		TaskReclaimResponse: queue.TaskReclaimResponse{},
-		Definition:          queue.TaskDefinitionResponse{},
+		TaskId:          "abc",
+		RunId:           0,
+		SignedDeleteUrl: fmt.Sprintf("%s/delete", s.URL),
+		TaskClaim:       queue.TaskClaimResponse{},
+		Definition:      queue.TaskDefinitionResponse{},
 	}
 
 	logger, _ := runtime.CreateLogger(os.Getenv("LOGGING_LEVEL"))
@@ -742,19 +740,17 @@ func TestClaimTasks(t *testing.T) {
 		WorkerId:    WORKER_ID,
 	}, &tcclient.CallSummary{}, nil)
 	tasks := []*TaskRun{{
-		TaskId:              "abc",
-		RunId:               0,
-		SignedDeleteUrl:     fmt.Sprintf("%s/delete", s.URL),
-		TaskClaimResponse:   queue.TaskClaimResponse{},
-		TaskReclaimResponse: queue.TaskReclaimResponse{},
-		Definition:          queue.TaskDefinitionResponse{},
+		TaskId:          "abc",
+		RunId:           0,
+		SignedDeleteUrl: fmt.Sprintf("%s/delete", s.URL),
+		TaskClaim:       queue.TaskClaimResponse{},
+		Definition:      queue.TaskDefinitionResponse{},
 	}, {
-		TaskId:              "def",
-		RunId:               1,
-		SignedDeleteUrl:     fmt.Sprintf("%s/delete", s.URL),
-		TaskClaimResponse:   queue.TaskClaimResponse{},
-		TaskReclaimResponse: queue.TaskReclaimResponse{},
-		Definition:          queue.TaskDefinitionResponse{},
+		TaskId:          "def",
+		RunId:           1,
+		SignedDeleteUrl: fmt.Sprintf("%s/delete", s.URL),
+		TaskClaim:       queue.TaskClaimResponse{},
+		Definition:      queue.TaskDefinitionResponse{},
 	}}
 
 	logger, _ := runtime.CreateLogger(os.Getenv("LOGGING_LEVEL"))

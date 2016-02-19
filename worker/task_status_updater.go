@@ -64,7 +64,7 @@ func UpdateTaskStatus(ts TaskStatusUpdate, queue queueClient, log *logrus.Entry)
 			log.WithField("error", err).Warn("Not able to report exception for task")
 			return &updateError{err: err.Error()}
 		}
-		task.TaskClaimResponse.Status = tsr.Status
+		task.TaskClaim.Status = tsr.Status
 		return nil
 	}
 
@@ -74,7 +74,7 @@ func UpdateTaskStatus(ts TaskStatusUpdate, queue queueClient, log *logrus.Entry)
 			log.WithField("error", err).Warn("Not able to report failed completion for task.")
 			return &updateError{err: err.Error()}
 		}
-		task.TaskClaimResponse.Status = tsr.Status
+		task.TaskClaim.Status = tsr.Status
 		return nil
 	}
 
@@ -84,7 +84,7 @@ func UpdateTaskStatus(ts TaskStatusUpdate, queue queueClient, log *logrus.Entry)
 			log.WithField("error", err).Warn("Not able to report successful completion for task.")
 			return &updateError{err: err.Error()}
 		}
-		task.TaskClaimResponse.Status = tsr.Status
+		task.TaskClaim.Status = tsr.Status
 		return nil
 	}
 
@@ -118,7 +118,7 @@ func UpdateTaskStatus(ts TaskStatusUpdate, queue queueClient, log *logrus.Entry)
 			}).Error(errorMessage)
 			return e
 		}
-		task.TaskClaimResponse = *tcrsp
+		task.TaskClaim = *tcrsp
 		return nil
 	}
 
@@ -131,7 +131,7 @@ func UpdateTaskStatus(ts TaskStatusUpdate, queue queueClient, log *logrus.Entry)
 			return &updateError{err: err.Error()}
 		}
 
-		task.TaskReclaimResponse = *tcrsp
+		task.TaskReclaim = *tcrsp
 		log.Info("Reclaimed task successfully")
 		return nil
 	}
