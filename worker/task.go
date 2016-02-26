@@ -1,6 +1,9 @@
 package worker
 
-import "github.com/taskcluster/taskcluster-client-go/queue"
+import (
+	"github.com/taskcluster/taskcluster-client-go/queue"
+	"github.com/taskcluster/taskcluster-worker/runtime"
+)
 
 type TaskRun struct {
 	TaskId          string                       `json:"taskId"`
@@ -9,4 +12,6 @@ type TaskRun struct {
 	TaskClaim       queue.TaskClaimResponse      `json:"-"`
 	TaskReclaim     queue.TaskReclaimResponse    `json:"-"`
 	Definition      queue.TaskDefinitionResponse `json:"-"`
+	controller      *runtime.TaskContextController
+	context         *runtime.TaskContext
 }

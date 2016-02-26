@@ -30,6 +30,9 @@ type (
 			ClientId string `json:"clientId"`
 		} `json:"credentials"`
 
+		// The amount of time to wait between task polling iterations
+		PollingInterval int `json:"pollingInterval"`
+
 		// The provisioner (if any) that is responsible for spawning instances of this worker. Typically `aws-provisioner-v1`.
 		ProvisionerId string `json:"provisionerId"`
 
@@ -88,6 +91,11 @@ var ConfigSchema = func() runtime.CompositeSchema {
 		      ],
 		      "title": "Credentials",
 		      "type": "object"
+		    },
+		    "pollingInterval": {
+		      "description": "The amount of time to wait between task polling iterations",
+		      "title": "PollingInterval",
+		      "type": "integer"
 		    },
 		    "provisionerId": {
 		      "description": "The provisioner (if any) that is responsible for spawning instances of this worker. Typically `+"`"+`aws-provisioner-v1`+"`"+`.",

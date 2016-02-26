@@ -105,8 +105,7 @@ type TaskPlugin interface {
 	// Non-fatal errors: MalformedPayloadError
 	Started(sandbox engines.Sandbox) error
 
-	// Stopped is called once the sandbox has terminated. Returns true, if the
-	// task execution was successful.
+	// Stopped is called once the sandbox has terminated.
 	//
 	// This is a good place to upload artifacts, logs, check exit code, and start
 	// to clean-up resources if such clean-up is expected to take a while.
@@ -134,7 +133,7 @@ type TaskPlugin interface {
 	// wish to persist. Naturally, log messages written at this stage will be
 	// dropped and all error messages will be fatal.
 	//
-	// Implementors should be ware that additional reasons may be added in the
+	// Implementors should be aware that additional reasons may be added in the
 	// future. Therefore they must handle the default case, if switching on the
 	// reason parameter.
 	Exception(reason ExceptionReason) error

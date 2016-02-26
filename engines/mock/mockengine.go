@@ -23,7 +23,6 @@ type engineProvider struct {
 }
 
 func (e engineProvider) NewEngine(options extpoints.EngineOptions) (engines.Engine, error) {
-	fmt.Println(options.Log)
 	return engine{Log: options.Log}, nil
 }
 
@@ -48,6 +47,8 @@ func (e engine) NewSandboxBuilder(options engines.SandboxOptions) (engines.Sandb
 	e.Log.Debug("Building Sandbox")
 	p, valid := options.Payload.(*payload)
 	if !valid {
+		fmt.Println(valid)
+		fmt.Println(options.Payload)
 		// TODO: Write to some sort of log if the type assertion fails
 		return nil, engines.ErrContractViolation
 	}

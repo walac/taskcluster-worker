@@ -5,6 +5,10 @@ description: |-
   to any engine or plugin.
 type:               object
 properties:
+  pollingInterval:
+    title: "PollingInterval"
+    description: "The amount of time to wait between task polling iterations"
+    type: "integer"
   credentials:
     title:          Credentials
     description: |-

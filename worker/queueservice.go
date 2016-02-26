@@ -55,6 +55,10 @@ type (
 		CancelTask(string) (*tcqueue.TaskStatusResponse, *tcclient.CallSummary, error)
 	}
 
+	QueueService interface {
+		ClaimWork(int) []*TaskRun
+	}
+
 	queueService struct {
 		mu               sync.Mutex
 		queues           []taskQueue

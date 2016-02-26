@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/docopt/docopt-go"
 	"github.com/taskcluster/taskcluster-worker/config"
 	"github.com/taskcluster/taskcluster-worker/engines/extpoints"
@@ -93,8 +94,22 @@ func main() {
 		},
 	}
 
-	w := worker.New(config, &engine, &runtimeEnvironment, logger.WithField("component", "Task Manager"))
+	l := logger.WithFields(logrus.Fields{
+		"workerId":      config.WorkerId,
+		"workerType":    config.WorkerGroup,
+		"provisionerId": config.ProvisionerId,
+	})
 
-	runtimeEnvironment.Log.Debugf("Created worker %+v", w)
-	runtimeEnvironment.Log.Info("Worker started up")
+	w, err := worker.New(config, engine, &runtimeEnvironment, l)
+	if err != nil {
+		logger.Fatalf("Could not create worker. %s", err)
+	}
+
+	stopped, err := w.Start()
+	if err != nil {
+		os.Stderr.WriteString(err.Error())
+		os.Exit(1)
+	}
+
+	<-stopped
 }
