@@ -58,6 +58,7 @@ func newTaskManager(config *config.Config, engine engines.Engine, environment *r
 	}
 
 	m := &Manager{
+		done:          make(chan struct{}),
 		tasks:         make(map[string]*TaskRun),
 		engine:        engine,
 		environment:   environment,
@@ -90,7 +91,6 @@ func newTaskManager(config *config.Config, engine engines.Engine, environment *r
 // execute units of work that has been claimed.
 func (m *Manager) Start(stop <-chan struct{}, done chan struct{}) {
 	m.log.Info("Polling for tasks every %d seconds\n", m.interval)
-	m.done = make(chan struct{})
 	doWork := time.NewTicker(time.Duration(m.interval) * time.Second)
 	for {
 		select {
@@ -110,6 +110,7 @@ func (m *Manager) Start(stop <-chan struct{}, done chan struct{}) {
 func (m *Manager) Stop() {
 	defer close(m.done)
 	// Do interesting things
+	// Loop over all running tasks, call cancel
 	return
 }
 
@@ -124,127 +125,97 @@ func (m *Manager) claimWork(ntasks int) {
 	}
 }
 
-func (m *Manager) runTask(task *TaskRun) error {
+func (m *Manager) runTask(task *TaskRun) engines.ResultSet {
 	log := m.log.WithFields(logrus.Fields{
 		"taskId": task.TaskId,
 		"runId":  task.RunId,
 	})
+	task.log = log
 	log.Info("Running Task")
 
 	err := m.registerTask(task)
+	done := make(chan struct{})
+	defer func() {
+		m.deregisterTask(task)
+	}()
+
 	if err != nil {
 		log.WithField("error", err.Error()).Warn("Could not register task")
-		return err
+		panic(err)
 	}
 
 	tp := m.environment.TemporaryStorage.NewFilePath()
 	task.context, task.controller, err = runtime.NewTaskContext(tp)
 	if err != nil {
 		log.WithField("error", err.Error()).Warn("Could not create task context")
-		return err
+		panic(err)
 	}
-
-	defer func() {
-		err = task.controller.CloseLog()
-		if err != nil {
-			log.WithField("error", err.Error()).Warn("Could not properly close task log")
-		}
-		err = task.controller.Dispose()
-		if err != nil {
-			log.WithField("error", err.Error()).Warn("Could not dispose of task context")
-		}
-		m.deregisterTask(task)
-	}()
 
 	jsonPayload := map[string]json.RawMessage{}
 	if err := json.Unmarshal(task.Definition.Payload, &jsonPayload); err != nil {
 		log.WithField("error", err.Error()).Warn("Could not parse task payload")
-		return err
+		panic(err)
 	}
 
 	p, err := m.engine.PayloadSchema().Parse(jsonPayload)
 	if err != nil {
 		log.WithField("error", err.Error()).Warn("Payload validation failed: %s", task.Definition.Payload)
-		return err
+		panic(err)
 	}
+	task.payload = p
 
 	ps, err := m.pluginManager.PayloadSchema()
 	if err != nil {
 		log.WithField("error", err.Error()).Warn("Could not retrieve plugin payload schemas")
-		return err
+		panic(err)
 	}
 
 	pluginPayload, err := ps.Parse(jsonPayload)
 	if err != nil {
 		log.WithField("error", err.Error()).Warn("Plugin payload validation failed: %s", task.Definition.Payload)
-		return err
+		panic(err)
 	}
 
 	popts := plugins.TaskPluginOptions{TaskInfo: &runtime.TaskInfo{}, Payload: pluginPayload}
 	taskPlugins, err := m.pluginManager.NewTaskPlugin(popts)
 	if err != nil {
 		log.WithField("error", err.Error()).Warn("Could not create task plugins")
-		return err
+		panic(err)
 	}
 
-	err = taskPlugins.Prepare(task.context)
-	if err != nil {
-		log.WithField("error", err.Error()).Warn("Could not prepare task plugins")
-		return err
+	task.plugin = taskPlugins
+
+	// each method can return error channel, and the next stage can consume it
+	prepare, errc := task.Prepare(m.engine)
+	build, errc := task.Build(prepare, done, errc)
+	run, errc := task.Run(build, done, errc)
+	stop, errc := task.Stop(run, done, errc)
+	finish, errc := task.Finish(stop, done, errc)
+
+	var result engines.ResultSet
+
+taskLoop:
+	for {
+		select {
+		case result = <-finish:
+			fmt.Println("finished")
+			if result.Success() != true {
+				fmt.Println(result)
+			}
+			break taskLoop
+		case <-m.done:
+			fmt.Println("stopping")
+			close(done)
+			result = <-finish
+			err := <-errc
+			// this will be replaced
+			fmt.Println(result.Success())
+			fmt.Println(err)
+			break taskLoop
+		}
 	}
 
-	sandboxBuilder, err := m.engine.NewSandboxBuilder(engines.SandboxOptions{
-		TaskContext: task.context,
-		Payload:     p,
-	})
-	if err != nil {
-		log.WithField("error", err.Error()).Warn("Could not create sandbox builder")
-		return err
-	}
-
-	err = taskPlugins.BuildSandbox(sandboxBuilder)
-	if err != nil {
-		log.WithField("error", err.Error()).Warn("Could not build build sandbox")
-		return err
-	}
-
-	sandbox, err := sandboxBuilder.StartSandbox()
-	if err != nil {
-		log.WithField("error", err.Error()).Warn("Could not start sandbox")
-		return err
-	}
-
-	err = taskPlugins.Started(sandbox)
-	if err != nil {
-		log.WithField("error", err.Error()).Warn("Could not properly start sandbox")
-		return err
-	}
-
-	result, err := sandbox.WaitForResult()
-	if err != nil {
-		log.WithField("error", err.Error()).Warn("Error when waiting for result set from sandbox")
-		return err
-	}
-
-	success, err := taskPlugins.Stopped(result)
-	if !success || err != nil {
-		log.WithField("error", err.Error()).Warn("Could not properly stop sandbox")
-		return err
-	}
-
-	err = taskPlugins.Finished(success)
-	if err != nil {
-		log.WithField("error", err.Error()).Warn("Could not finish plugin cleanup")
-		return err
-	}
-
-	err = taskPlugins.Dispose()
-	if err != nil {
-		log.WithField("error", err.Error()).Warn("Could not dispose plugins")
-		return err
-	}
-
-	return nil
+	return result
 }
 
 func (m *Manager) registerTask(task *TaskRun) error {
@@ -278,3 +249,18 @@ func (m *Manager) deregisterTask(task *TaskRun) error {
 	delete(m.tasks, name)
 	return nil
 }
+
+/*
+	defer func() {
+		err = task.controller.CloseLog()
+		if err != nil {
+			log.WithField("error", err.Error()).Warn("Could not properly close task log")
+		}
+		err = task.controller.Dispose()
+		if err != nil {
+			log.WithField("error", err.Error()).Warn("Could not dispose of task context")
+		}
+		m.deregisterTask(task)
+	}()
+
+*/

@@ -110,6 +110,10 @@ type TaskPlugin interface {
 	// This is a good place to upload artifacts, logs, check exit code, and start
 	// to clean-up resources if such clean-up is expected to take a while.
 	//
+	// This will return false if the operation could not be completed successfully.
+	// Such as artifact upload failure or files not existing.  If this returns false
+	// it shall be assumed that the task has failed and should be reported as a failure.
+	//
 	// Non-fatal errors: MalformedPayloadError
 	Stopped(result engines.ResultSet) (bool, error)
 
@@ -140,7 +144,7 @@ type TaskPlugin interface {
 
 	// Dispose is called once everything is done and it's time for clean-up.
 	//
-	// This method will invoked following Stopped() or Exception(). It is then
+	// This method will be invoked following Stopped() or Exception(). It is then
 	// the responsibility of the implementor to abort or wait for any long-running
 	// processes and clean-up any resources held.
 	Dispose() error

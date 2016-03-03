@@ -2,6 +2,7 @@ package mockengine
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -35,6 +36,7 @@ type sandbox struct {
 	proxies map[string]http.Handler
 	files   map[string][]byte
 	result  bool
+	done    chan struct{}
 }
 
 ///////////////////////////// Implementation of SandboxBuilder interface
@@ -42,6 +44,7 @@ type sandbox struct {
 func (s *sandbox) StartSandbox() (engines.Sandbox, error) {
 	s.Lock()
 	defer s.Unlock()
+	s.done = make(chan struct{})
 	return s, nil
 }
 
@@ -139,17 +142,27 @@ var functions = map[string]func(*sandbox, string) bool{
 
 func (s *sandbox) WaitForResult() (engines.ResultSet, error) {
 	// No need to lock access to payload, as it can't be mutated at this point
-	time.Sleep(time.Duration(s.payload.Delay) * time.Millisecond)
-	// No need to lock access mounts and proxies either
-	f := functions[s.payload.Function]
-	if f == nil {
-		return nil, engines.NewMalformedPayloadError("Unknown function")
+	select {
+	case <-s.done:
+		s.result = false
+		return s, errors.New("Task execution has been aborted")
+	case <-time.After(time.Duration(s.payload.Delay) * time.Millisecond):
+		// No need to lock access mounts and proxies either
+		f := functions[s.payload.Function]
+		if f == nil {
+			return nil, engines.NewMalformedPayloadError("Unknown function")
+		}
+		result := f(s, s.payload.Argument)
+		s.Lock()
+		defer s.Unlock()
+		s.result = result
+		return s, nil
 	}
-	result := f(s, s.payload.Argument)
-	s.Lock()
-	defer s.Unlock()
-	s.result = result
-	return s, nil
+}
+
+func (s *sandbox) Abort() error {
+	close(s.done)
+	return nil
 }
 
 func (s *sandbox) ExtractFile(path string) (io.ReadCloser, error) {
@@ -193,4 +206,8 @@ func (s *sandbox) ExtractFolder(folder string, handler engines.FileHandler) erro
 func (s *sandbox) Success() bool {
 	// No need to lock access as result is immutable
 	return s.result
+}
+
+func (s *sandbox) SetResult(result bool) {
+	s.result = result
 }

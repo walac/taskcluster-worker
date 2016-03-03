@@ -23,6 +23,11 @@ type ResultSet interface {
 	// that the process exited zero.
 	Success() bool
 
+	// SetResult could be called if a consumer needs to adjust the result of the
+	// task execution after the sandbox has finished (such as a plugin failing to upload
+	// artifacts)
+	SetResult(bool)
+
 	// Extract a file from the sandbox.
 	//
 	// Interpretation of the string path format is engine specific and must be
