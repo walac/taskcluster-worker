@@ -18,6 +18,7 @@ import (
 	"github.com/taskcluster/httpbackoff"
 	tcqueue "github.com/taskcluster/taskcluster-client-go/queue"
 	"github.com/taskcluster/taskcluster-client-go/tcclient"
+	"github.com/taskcluster/taskcluster-worker/runtime"
 )
 
 type (
@@ -117,7 +118,7 @@ func (q *queueService) claimTasks(tasks []*TaskRun) []*TaskRun {
 func (q *queueService) claimTask(task *TaskRun) bool {
 	update := TaskStatusUpdate{
 		Task:          task,
-		Status:        Claimed,
+		Status:        runtime.Claimed,
 		WorkerId:      q.WorkerId,
 		ProvisionerId: q.ProvisionerId,
 		WorkerGroup:   q.WorkerGroup,

@@ -1,7 +1,6 @@
 package worker
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -35,7 +34,7 @@ type Manager struct {
 	provisionerId string
 	workerGroup   string
 	workerId      string
-	sync.Mutex
+	sync.RWMutex
 	tasks map[string]*TaskRun
 }
 
@@ -109,8 +108,53 @@ func (m *Manager) Start(stop <-chan struct{}, done chan struct{}) {
 
 func (m *Manager) Stop() {
 	defer close(m.done)
-	// Do interesting things
-	// Loop over all running tasks, call cancel
+	for _, v := range m.tasks {
+		v.Abort()
+	}
+
+	done := make(chan struct{})
+	go func() {
+		for {
+			if len(m.RunningTasks()) == 0 {
+				close(done)
+				return
+			}
+		}
+	}()
+
+	select {
+	case <-done:
+		return
+	case <-time.After(2 * time.Minute):
+		close(done)
+		return
+	}
+}
+
+func (m *Manager) RunningTasks() []string {
+	m.RLock()
+	defer m.RUnlock()
+
+	tasks := []string{}
+	for k, _ := range m.tasks {
+		tasks = append(tasks, k)
+	}
+
+	return tasks
+}
+
+func (m *Manager) CancelTask(taskId string, runId int) {
+	name := fmt.Sprintf("%s/%d", taskId, runId)
+
+	m.RLock()
+	defer m.RUnlock()
+
+	t, exists := m.tasks[name]
+	if !exists {
+		return
+	}
+
+	t.Cancel()
 	return
 }
 
@@ -119,103 +163,37 @@ func (m *Manager) claimWork(ntasks int) {
 		return
 	}
 
-	claims := m.queue.ClaimWork(ntasks)
-	for _, c := range claims {
-		go m.runTask(c)
+	tasks := m.queue.ClaimWork(ntasks)
+	for _, t := range tasks {
+		go m.run(t)
 	}
 }
 
-func (m *Manager) runTask(task *TaskRun) engines.ResultSet {
+func (m *Manager) run(task *TaskRun) {
 	log := m.log.WithFields(logrus.Fields{
 		"taskId": task.TaskId,
 		"runId":  task.RunId,
 	})
 	task.log = log
-	log.Info("Running Task")
 
 	err := m.registerTask(task)
-	done := make(chan struct{})
-	defer func() {
-		m.deregisterTask(task)
-	}()
 
 	if err != nil {
 		log.WithField("error", err.Error()).Warn("Could not register task")
 		panic(err)
 	}
 
+	defer m.deregisterTask(task)
+
 	tp := m.environment.TemporaryStorage.NewFilePath()
-	task.context, task.controller, err = runtime.NewTaskContext(tp)
+	ctxt, ctxtctl, err := runtime.NewTaskContext(tp)
 	if err != nil {
 		log.WithField("error", err.Error()).Warn("Could not create task context")
 		panic(err)
 	}
 
-	jsonPayload := map[string]json.RawMessage{}
-	if err := json.Unmarshal(task.Definition.Payload, &jsonPayload); err != nil {
-		log.WithField("error", err.Error()).Warn("Could not parse task payload")
-		panic(err)
-	}
-
-	p, err := m.engine.PayloadSchema().Parse(jsonPayload)
-	if err != nil {
-		log.WithField("error", err.Error()).Warn("Payload validation failed: %s", task.Definition.Payload)
-		panic(err)
-	}
-	task.payload = p
-
-	ps, err := m.pluginManager.PayloadSchema()
-	if err != nil {
-		log.WithField("error", err.Error()).Warn("Could not retrieve plugin payload schemas")
-		panic(err)
-	}
-
-	pluginPayload, err := ps.Parse(jsonPayload)
-	if err != nil {
-		log.WithField("error", err.Error()).Warn("Plugin payload validation failed: %s", task.Definition.Payload)
-		panic(err)
-	}
-
-	popts := plugins.TaskPluginOptions{TaskInfo: &runtime.TaskInfo{}, Payload: pluginPayload}
-	taskPlugins, err := m.pluginManager.NewTaskPlugin(popts)
-	if err != nil {
-		log.WithField("error", err.Error()).Warn("Could not create task plugins")
-		panic(err)
-	}
-
-	task.plugin = taskPlugins
-
-	// each method can return error channel, and the next stage can consume it
-	prepare, errc := task.Prepare(m.engine)
-	build, errc := task.Build(prepare, done, errc)
-	run, errc := task.Run(build, done, errc)
-	stop, errc := task.Stop(run, done, errc)
-	finish, errc := task.Finish(stop, done, errc)
-
-	var result engines.ResultSet
-
-taskLoop:
-	for {
-		select {
-		case result = <-finish:
-			fmt.Println("finished")
-			if result.Success() != true {
-				fmt.Println(result)
-			}
-			break taskLoop
-		case <-m.done:
-			fmt.Println("stopping")
-			close(done)
-			result = <-finish
-			err := <-errc
-			// this will be replaced
-			fmt.Println(result.Success())
-			fmt.Println(err)
-			break taskLoop
-		}
-	}
-
-	return result
+	task.Run(m.pluginManager, m.engine, ctxt, ctxtctl)
+	return
 }
 
 func (m *Manager) registerTask(task *TaskRun) error {
@@ -249,18 +227,3 @@ func (m *Manager) deregisterTask(task *TaskRun) error {
 	delete(m.tasks, name)
 	return nil
 }
-
-/*
-	defer func() {
-		err = task.controller.CloseLog()
-		if err != nil {
-			log.WithField("error", err.Error()).Warn("Could not properly close task log")
-		}
-		err = task.controller.Dispose()
-		if err != nil {
-			log.WithField("error", err.Error()).Warn("Could not dispose of task context")
-		}
-		m.deregisterTask(task)
-	}()
-
-*/

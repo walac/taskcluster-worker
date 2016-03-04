@@ -80,3 +80,21 @@ func (e MalformedPayloadError) Error() string {
 func NewMalformedPayloadError(message string) MalformedPayloadError {
 	return MalformedPayloadError{message: message}
 }
+
+type InternalError struct {
+	message string
+}
+
+func (e InternalError) Error() string {
+	return e.message
+}
+
+// NewInternalError creates an InternalError object, please
+// make sure to include a detailed description of the error, preferably using
+// multiple lines and with examples.
+//
+// These will be printed in the logs and end-users will rely on them to debug
+// their tasks.
+func NewInternalError(message string) InternalError {
+	return InternalError{message: message}
+}

@@ -5,7 +5,6 @@
 package mockengine
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
@@ -47,8 +46,6 @@ func (e engine) NewSandboxBuilder(options engines.SandboxOptions) (engines.Sandb
 	e.Log.Debug("Building Sandbox")
 	p, valid := options.Payload.(*payload)
 	if !valid {
-		fmt.Println(valid)
-		fmt.Println(options.Payload)
 		// TODO: Write to some sort of log if the type assertion fails
 		return nil, engines.ErrContractViolation
 	}

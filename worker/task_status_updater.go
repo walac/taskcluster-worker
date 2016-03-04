@@ -5,35 +5,24 @@ import (
 	"strconv"
 
 	"github.com/Sirupsen/logrus"
-	tcclient "github.com/taskcluster/taskcluster-client-go/queue"
+	tcqueue "github.com/taskcluster/taskcluster-client-go/queue"
+	"github.com/taskcluster/taskcluster-client-go/tcclient"
+	"github.com/taskcluster/taskcluster-worker/runtime"
 )
 
-// NOTE (garndt): This is still up in the air as I"m not sure if I like calling the
+// NOTE (garndt): This is still up in the air as I'm not sure if I like calling the
 // update methods like this.  It is nice to just pass in an update object and the method
 // takes care of calling it in a goroutine.
 
-type TaskStatus string
 type TaskStatusUpdate struct {
 	Task          *TaskRun
-	Status        TaskStatus
-	IfStatusIn    map[TaskStatus]bool
+	Status        runtime.TaskStatus
+	IfStatusIn    map[runtime.TaskStatus]bool
 	Reason        string
 	WorkerId      string
 	ProvisionerId string
 	WorkerGroup   string
 }
-
-// Enumerate task status to aid life-cycle decision making
-// Use strings for benefit of simple logging/reporting
-const (
-	Aborted   TaskStatus = "Aborted"
-	Cancelled TaskStatus = "Cancelled"
-	Succeeded TaskStatus = "Succeeded"
-	Failed    TaskStatus = "Failed"
-	Errored   TaskStatus = "Errored"
-	Claimed   TaskStatus = "Claimed"
-	Reclaimed TaskStatus = "Reclaimed"
-)
 
 type updateError struct {
 	statusCode int
@@ -58,7 +47,7 @@ func UpdateTaskStatus(ts TaskStatusUpdate, queue queueClient, log *logrus.Entry)
 	// proper concurrency handling
 
 	reportException := func(task *TaskRun, reason string, log *logrus.Entry) *updateError {
-		ter := tcclient.TaskExceptionRequest{Reason: reason}
+		ter := tcqueue.TaskExceptionRequest{Reason: reason}
 		tsr, _, err := queue.ReportException(task.TaskId, strconv.FormatInt(int64(task.RunId), 10), &ter)
 		if err != nil {
 			log.WithField("error", err).Warn("Not able to report exception for task")
@@ -90,7 +79,7 @@ func UpdateTaskStatus(ts TaskStatusUpdate, queue queueClient, log *logrus.Entry)
 
 	claim := func(task *TaskRun, log *logrus.Entry) *updateError {
 		log.Info("Claiming task")
-		cr := tcclient.TaskClaimRequest{
+		cr := tcqueue.TaskClaimRequest{
 			WorkerGroup: ts.WorkerGroup,
 			WorkerId:    ts.WorkerId,
 		}
@@ -118,7 +107,18 @@ func UpdateTaskStatus(ts TaskStatusUpdate, queue queueClient, log *logrus.Entry)
 			}).Error(errorMessage)
 			return e
 		}
+
+		queue := tcqueue.New(
+			&tcclient.Credentials{
+				ClientId:    tcrsp.Credentials.ClientId,
+				AccessToken: tcrsp.Credentials.AccessToken,
+				Certificate: tcrsp.Credentials.Certificate,
+			},
+		)
+
 		task.TaskClaim = *tcrsp
+		task.QueueClient = queue
+
 		return nil
 	}
 
@@ -144,15 +144,15 @@ func UpdateTaskStatus(ts TaskStatusUpdate, queue queueClient, log *logrus.Entry)
 			task := ts.Task
 			switch ts.Status {
 			// Aborting is when you stop running a job you already claimed
-			case Succeeded:
+			case runtime.Succeeded:
 				e <- reportCompleted(task, logger)
-			case Failed:
+			case runtime.Failed:
 				e <- reportFailed(task, logger)
-			case Errored:
+			case runtime.Errored:
 				e <- reportException(task, ts.Reason, logger)
-			case Claimed:
+			case runtime.Claimed:
 				e <- claim(task, logger)
-			case Reclaimed:
+			case runtime.Reclaimed:
 				e <- reclaim(task, logger)
 			default:
 				err := &updateError{err: fmt.Sprintf("Internal error: unknown task status: %v", ts.Status)}

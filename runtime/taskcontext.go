@@ -3,8 +3,23 @@ package runtime
 import (
 	"fmt"
 	"io"
+	"sync"
 
 	"gopkg.in/djherbis/stream.v1"
+)
+
+type TaskStatus string
+
+// Enumerate task status to aid life-cycle decision making
+// Use strings for benefit of simple logging/reporting
+const (
+	Aborted   TaskStatus = "Aborted"
+	Cancelled TaskStatus = "Cancelled"
+	Succeeded TaskStatus = "Succeeded"
+	Failed    TaskStatus = "Failed"
+	Errored   TaskStatus = "Errored"
+	Claimed   TaskStatus = "Claimed"
+	Reclaimed TaskStatus = "Reclaimed"
 )
 
 // The TaskInfo struct exposes generic properties from a task definition.
@@ -22,6 +37,9 @@ type TaskInfo struct {
 type TaskContext struct {
 	TaskInfo
 	logStream *stream.Stream
+	mu        sync.RWMutex
+	status    TaskStatus
+	cancelled bool
 }
 
 // TaskContextController exposes logic for controlling the TaskContext.
@@ -54,12 +72,55 @@ func (c *TaskContextController) Dispose() error {
 	return c.logStream.Remove()
 }
 
+// Abort sets the status to aborted
+func (c *TaskContext) Abort() {
+	c.mu.Lock()
+	c.status = Aborted
+	c.mu.Unlock()
+	return
+}
+
+// IsAborted returns true if the current status is Aborted
+func (c *TaskContext) IsAborted() bool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.status == Aborted
+}
+
+// Cancel sets the status to cancelled
+func (c *TaskContext) Cancel() {
+	c.mu.Lock()
+	c.status = Cancelled
+	c.mu.Unlock()
+	return
+}
+
+// IsCancelled returns true if the current status is Cancelled
+func (c *TaskContext) IsCancelled() bool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.status == Cancelled
+}
+
 // Log writes a log message from the worker
 //
 // These log messages will be prefixed "[taskcluster]" so it's easy to see to
 // that they are worker logs.
 func (c *TaskContext) Log(a ...interface{}) {
-	a = append([]interface{}{"[taskcluster] "}, a...)
+	c.log("[taskcluster] ", a...)
+}
+
+// Log writes a log error message from the worker
+//
+// These log messages will be prefixed "[taskcluster:error]" so it's easy to see to
+// that they are worker logs.  These errors are also easy to grep from the logs in
+// case of failure.
+func (c *TaskContext) LogError(a ...interface{}) {
+	c.log("[taskcluster:error] ", a...)
+}
+
+func (c *TaskContext) log(prefix string, a ...interface{}) {
+	a = append([]interface{}{prefix}, a...)
 	_, err := fmt.Fprintln(c.logStream, a...)
 	if err != nil {
 		//TODO: Forward this to the system log, it's not a critical error

@@ -1,8 +1,9 @@
 package worker
 
 import (
-	"errors"
-	"strings"
+	"encoding/json"
+	"fmt"
+	"sync"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/taskcluster/taskcluster-client-go/queue"
@@ -18,186 +19,266 @@ type TaskRun struct {
 	TaskClaim       queue.TaskClaimResponse      `json:"-"`
 	TaskReclaim     queue.TaskReclaimResponse    `json:"-"`
 	Definition      queue.TaskDefinitionResponse `json:"-"`
-	controller      *runtime.TaskContextController
-	context         *runtime.TaskContext
+	QueueClient     queueClient
 	plugin          plugins.TaskPlugin
 	log             *logrus.Entry
 	payload         interface{}
+	sync.RWMutex
+	context        *runtime.TaskContext
+	controller     *runtime.TaskContextController
+	sandboxBuilder engines.SandboxBuilder
+	sandbox        engines.Sandbox
+	resultSet      engines.ResultSet
 }
 
-func (t *TaskRun) Prepare(engine engines.Engine) (<-chan engines.SandboxBuilder, <-chan error) {
-	out := make(chan engines.SandboxBuilder, 1)
-	errc := make(chan error, 1)
-	go func() {
-		defer close(errc)
-		t.log.Debug("Preparing task run")
-		err := t.plugin.Prepare(t.context)
-
-		if err != nil {
-			t.log.WithField("error", err.Error()).Warn("Could not prepare task plugins")
-			errc <- err
-			close(out)
-			return
-		}
-
-		sandboxBuilder, err := engine.NewSandboxBuilder(engines.SandboxOptions{
-			TaskContext: t.context,
-			Payload:     t.payload,
-		})
-		if err != nil {
-			t.log.WithField("error", err.Error()).Warn("Could not create sandbox builder")
-			errc <- err
-			close(out)
-			return
-		}
-
-		out <- sandboxBuilder
-
-	}()
-	return out, errc
+// Abort will set the status of the task to aborted and abort the task execution
+// environment if one has been created.
+func (t *TaskRun) Abort() {
+	t.Lock()
+	defer t.Unlock()
+	if t.context != nil {
+		t.context.Abort()
+	}
+	if t.sandbox != nil {
+		t.sandbox.Abort()
+	}
 }
 
-func (t *TaskRun) Build(in <-chan engines.SandboxBuilder, done <-chan struct{}, inerrc <-chan error) (<-chan engines.SandboxBuilder, <-chan error) {
-	out := make(chan engines.SandboxBuilder)
-	errc := make(chan error, 1)
-
-	go func() {
-		defer close(errc)
-		sb := <-in
-		if sb == nil {
-			errc <- <-inerrc
-			close(out)
-			return
-		}
-		t.log.Debug("Building task run")
-		err := t.plugin.BuildSandbox(sb)
-		if err != nil {
-			t.log.WithField("error", err.Error()).Warn("Could not build build sandbox")
-			errc <- err
-			close(out)
-			return
-		}
-		out <- sb
-	}()
-	return out, errc
+// Cancel will set the status of the task to cancelled and abort the task execution
+// environment if one has been created.
+func (t *TaskRun) Cancel() {
+	t.log.Info("Cancelling task")
+	t.Lock()
+	defer t.Unlock()
+	if t.context != nil {
+		t.context.Cancel()
+	}
+	if t.sandbox != nil {
+		t.sandbox.Abort()
+	}
 }
 
-func (t *TaskRun) Run(in <-chan engines.SandboxBuilder, done <-chan struct{}, inerrc <-chan error) (<-chan engines.ResultSet, <-chan error) {
-	out := make(chan engines.ResultSet)
-	errc := make(chan error, 1)
+// ExceptionStage will report a task run as an exception with an appropriate reason.
+// Tasks that have been cancelled will not be reported as an exception as the run
+// has already been resolved.
+func (t *TaskRun) ExceptionStage(status runtime.TaskStatus, err error) {
+	if t.context.IsCancelled() {
+		return
+	}
 
-	go func() {
-		defer func() {
-			close(errc)
-			close(out)
-		}()
-		sb := <-in
-		if sb == nil {
-			errc <- <-inerrc
-			close(out)
-			return
-		}
-		t.log.Debug("Running task")
-		sandbox, err := sb.StartSandbox()
-		if err != nil {
-			t.log.WithField("error", err.Error()).Warn("Could not start sandbox")
-			errc <- err
-			close(out)
-			return
-		}
+	var reason string
+	switch err.(type) {
+	case engines.MalformedPayloadError:
+		reason = "malformed-payload"
+	case engines.InternalError:
+		reason = "internal-error"
+	default:
+		reason = "worker-shutdown"
+	}
 
-		err = t.plugin.Started(sandbox)
-		if err != nil {
-			t.log.WithField("error", err.Error()).Warn("Could not properly start sandbox")
-			errc <- err
-			close(out)
-			return
-		}
+	update := TaskStatusUpdate{
+		Task:          t,
+		Status:        status,
+		Reason:        reason,
+		WorkerId:      t.TaskClaim.WorkerId,
+		ProvisionerId: t.TaskClaim.Status.ProvisionerId,
+		WorkerGroup:   t.TaskClaim.WorkerGroup,
+	}
 
-		finished := make(chan struct{})
-		go func() {
-			select {
-			case <-done:
-				sandbox.Abort()
-			case <-finished:
-				return
-			}
-		}()
-
-		result, err := sandbox.WaitForResult()
-		close(finished)
-		if err != nil {
-			t.log.WithField("error", err.Error()).Warn("Error when waiting for result set from sandbox")
-			errc <- err
-		}
-		out <- result
-	}()
-	return out, errc
+	<-UpdateTaskStatus(update, t.QueueClient, t.log)
+	return
 }
 
-func (t *TaskRun) Stop(in <-chan engines.ResultSet, done <-chan struct{}, inerrc <-chan error) (<-chan engines.ResultSet, <-chan error) {
-	out := make(chan engines.ResultSet, 1)
-	errc := make(chan error, 1)
+// Run is the entrypoint to executing a task run.  The task payload will be parsed,
+// plugins created, and the task will run through each of the stages of the task
+// life cycle.
+//
+// Tasks that do not complete successfully will be reported as an exception during
+// the ExceptionStage.
+func (t *TaskRun) Run(pluginManager plugins.Plugin, engine engines.Engine, context *runtime.TaskContext, contextController *runtime.TaskContextController) {
+	t.Lock()
+	t.context = context
+	t.controller = contextController
+	t.Unlock()
 
-	go func() {
-		defer func() {
-			close(errc)
-			close(out)
-		}()
-		r := <-in
-		t.log.Debug("Stopping task run")
-		success, err := t.plugin.Stopped(r)
-		// if stopping the plugins was unsuccessful, the task execution should be a failure
-		if success == false {
-			r.SetResult(false)
-		}
-		if err != nil {
-			t.log.WithField("error", err.Error()).Warn("Could not properly stop sandbox")
-			errc <- err
-		}
-		out <- r
-	}()
+	defer t.DisposeStage()
 
-	return out, errc
+	jsonPayload := map[string]json.RawMessage{}
+	if err := json.Unmarshal(t.Definition.Payload, &jsonPayload); err != nil {
+		t.context.LogError(fmt.Sprintf("Invalid task payload. %s", err))
+		t.ExceptionStage(runtime.Errored, err)
+		return
+	}
+
+	p, err := engine.PayloadSchema().Parse(jsonPayload)
+	if err != nil {
+		t.context.LogError(fmt.Sprintf("Invalid task payload. %s", err))
+		t.ExceptionStage(runtime.Errored, err)
+		return
+	}
+	t.payload = p
+
+	ps, err := pluginManager.PayloadSchema()
+	if err != nil {
+		t.context.LogError(fmt.Sprintf("Invalid task payload. %s", err))
+		t.ExceptionStage(runtime.Errored, err)
+		return
+	}
+
+	pluginPayload, err := ps.Parse(jsonPayload)
+	if err != nil {
+		t.context.LogError(fmt.Sprintf("Invalid task payload. %s", err))
+		t.ExceptionStage(runtime.Errored, err)
+		return
+	}
+
+	popts := plugins.TaskPluginOptions{TaskInfo: &runtime.TaskInfo{}, Payload: pluginPayload}
+	t.plugin, err = pluginManager.NewTaskPlugin(popts)
+	if err != nil {
+		t.context.LogError(fmt.Sprintf("Invalid task payload. %s", err))
+		t.ExceptionStage(runtime.Errored, err)
+		return
+	}
+
+	err = t.PrepareStage(engine)
+	// TODO (garndt): Add IsAborted() to task context and check here for that
+	if err != nil || t.context.IsAborted() || t.context.IsCancelled() {
+		t.ExceptionStage(runtime.Errored, err)
+		return
+	}
+
+	err = t.BuildStage()
+	if err != nil || t.context.IsAborted() || t.context.IsCancelled() {
+		t.ExceptionStage(runtime.Errored, err)
+		return
+	}
+
+	err = t.StartStage()
+	if err != nil || t.context.IsAborted() || t.context.IsCancelled() {
+		t.ExceptionStage(runtime.Errored, err)
+		return
+	}
+
+	err = t.StopStage()
+	if err != nil || t.context.IsAborted() || t.context.IsCancelled() {
+		t.ExceptionStage(runtime.Errored, err)
+		return
+	}
+
+	err = t.FinishStage()
+	if err != nil || t.context.IsAborted() || t.context.IsCancelled() {
+		t.ExceptionStage(runtime.Errored, err)
+		return
+	}
 }
 
-func (t *TaskRun) Finish(in <-chan engines.ResultSet, done <-chan struct{}, inerrc <-chan error) (<-chan engines.ResultSet, <-chan error) {
-	out := make(chan engines.ResultSet, 1)
-	errc := make(chan error, 1)
+// DisposeStage is responsible for cleaning up resources allocated for the task execution.
+// This will involve closing all necessary files and disposing of contexts, plugins, and sandboxes.
+func (t *TaskRun) DisposeStage() {
+	err := t.controller.CloseLog()
+	if err != nil {
+		t.log.WithField("error", err.Error()).Warn("Could not properly close task log")
+	}
+	err = t.controller.Dispose()
+	if err != nil {
+		t.log.WithField("error", err.Error()).Warn("Could not dispose of task context")
+	}
+	return
+}
 
-	go func() {
-		defer func() {
-			close(out)
-			close(errc)
-		}()
-		errs := []string{}
-		r := <-in
-		if r.Success() == false {
-			e := <-inerrc
-			if e != nil {
-				errs = append(errs, e.Error())
-			}
-		}
-		t.log.Debug("Finishing task run")
-		err := t.plugin.Finished(r.Success())
-		if err != nil {
-			t.log.WithField("error", err.Error()).Warn("Could not finish plugin cleanup")
-			errs = append(errs, err.Error())
-		}
+// PrepareStage is the first stage of the task life cycle where task plugins are prepared
+// and a sandboxbuilder is created.
+func (t *TaskRun) PrepareStage(engine engines.Engine) error {
+	t.log.Debug("Preparing task run")
 
-		err = t.plugin.Dispose()
-		if err != nil {
-			t.log.WithField("error", err.Error()).Warn("Could not dispose plugins")
-			errs = append(errs, err.Error())
-		}
+	err := t.plugin.Prepare(t.context)
+	if err != nil {
+		t.context.LogError(fmt.Sprintf("Could not prepare task plugins. %s", err))
+		return err
+	}
 
-		if len(errs) > 0 {
-			r.SetResult(false)
-			errc <- errors.New(strings.Join(errs, ", "))
-		}
+	t.Lock()
+	t.sandboxBuilder, err = engine.NewSandboxBuilder(engines.SandboxOptions{
+		TaskContext: t.context,
+		Payload:     t.payload,
+	})
+	t.Unlock()
+	if err != nil {
+		t.context.LogError(fmt.Sprintf("Could not create task execution environment. %s", err))
+		return err
+	}
 
-		out <- r
-	}()
+	return nil
+}
 
-	return out, errc
+// BuildStage is the second stage of the task life cycle.  This stage is responsible for
+// configuring the environment for building a sandbox (task execution environment).
+func (t *TaskRun) BuildStage() error {
+	t.log.Debug("Building task run")
+
+	err := t.plugin.BuildSandbox(t.sandboxBuilder)
+	if err != nil {
+		t.context.LogError(fmt.Sprintf("Could not create task execution environment. %s", err))
+		return err
+	}
+
+	return nil
+}
+
+// StartStage is the third stage of the task life cycle.  This stage is responsible for
+// starting the execution environment and waiting for a result.
+func (t *TaskRun) StartStage() error {
+	t.log.Debug("Running task")
+
+	sandbox, err := t.sandboxBuilder.StartSandbox()
+	if err != nil {
+		t.context.LogError(fmt.Sprintf("Could not start task execution environment. %s", err))
+		return err
+	}
+	t.Lock()
+	t.sandbox = sandbox
+	t.Unlock()
+
+	err = t.plugin.Started(t.sandbox)
+	if err != nil {
+		t.context.LogError(fmt.Sprintf("Could not start task execution environment. %s", err))
+		return err
+	}
+
+	result, err := t.sandbox.WaitForResult()
+	if err != nil {
+		t.context.LogError(fmt.Sprintf("Task execution did not complete successfully. %s", err))
+		return err
+	}
+
+	t.resultSet = result
+
+	return nil
+}
+
+func (t *TaskRun) StopStage() error {
+	t.log.Debug("Stopping task execution")
+	success, err := t.plugin.Stopped(t.resultSet)
+	// if stopping the plugins was unsuccessful, the task execution should be a failure
+	if success == false {
+		t.resultSet.SetResult(false)
+	}
+	if err != nil {
+		t.context.LogError(fmt.Sprintf("Stopping execution environment failed. %s", err))
+		return err
+	}
+
+	return nil
+}
+
+func (t *TaskRun) FinishStage() error {
+	t.log.Debug("Finishing task run")
+
+	err := t.plugin.Finished(t.resultSet.Success())
+	if err != nil {
+		t.context.LogError(fmt.Sprintf("Could not finish cleaning up task execution. %s", err))
+		return err
+	}
+
+	return nil
 }
