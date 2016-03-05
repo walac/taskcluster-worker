@@ -2,6 +2,7 @@ package worker
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -170,6 +171,26 @@ func (t *TaskRun) Run(pluginManager plugins.Plugin, engine engines.Engine, conte
 		t.ExceptionStage(runtime.Errored, err)
 		return
 	}
+
+	err = t.ResolveTask()
+	if err != nil || t.context.IsAborted() || t.context.IsCancelled() {
+		t.log.WithField("error", err.Error()).Warn("Could not resolve task properly")
+		return
+	}
+
+}
+
+func (t *TaskRun) ResolveTask() error {
+	resolve := reportCompleted
+	if !t.resultSet.Success() {
+		resolve = reportFailed
+	}
+
+	err := resolve(t.QueueClient, t, t.log)
+	if err != nil {
+		return errors.New(err.Error())
+	}
+	return nil
 }
 
 // DisposeStage is responsible for cleaning up resources allocated for the task execution.
@@ -271,6 +292,8 @@ func (t *TaskRun) StopStage() error {
 	return nil
 }
 
+// FinishStage will be responsible for finalizing the execution of a task, close and
+// upload tasks logs, etc.
 func (t *TaskRun) FinishStage() error {
 	t.log.Debug("Finishing task run")
 

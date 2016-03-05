@@ -50,9 +50,17 @@ func TestRunTask(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	mockedQueue := &MockQueue{}
+	mockedQueue.On(
+		"ReportCompleted",
+		"abc",
+		"1",
+	).Return(&queue.TaskStatusResponse{}, &tcclient.CallSummary{}, nil)
+
 	tr := &TaskRun{
-		TaskId: "abc",
-		RunId:  1,
+		QueueClient: mockedQueue,
+		TaskId:      "abc",
+		RunId:       1,
 		Definition: queue.TaskDefinitionResponse{
 			Payload: []byte(`{"start": {"delay": 10,"function": "write-log","argument": "Hello World"}}`),
 		},
@@ -60,6 +68,7 @@ func TestRunTask(t *testing.T) {
 	tm.run(tr)
 	assert.NotNil(t, tr.resultSet, "Task does not appear to have been completed successfully")
 	assert.True(t, tr.resultSet.Success(), "Task should have been successfully completed")
+	mockedQueue.AssertCalled(t, "ReportCompleted", "abc", "1")
 }
 
 func TestCancelTask(t *testing.T) {
