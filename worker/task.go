@@ -61,31 +61,31 @@ func (t *TaskRun) Cancel() {
 // ExceptionStage will report a task run as an exception with an appropriate reason.
 // Tasks that have been cancelled will not be reported as an exception as the run
 // has already been resolved.
-func (t *TaskRun) ExceptionStage(status runtime.TaskStatus, err error) {
+func (t *TaskRun) ExceptionStage(status runtime.TaskStatus, taskError error) {
+	var reason runtime.ExceptionReason
+	switch taskError.(type) {
+	case engines.MalformedPayloadError:
+		reason = runtime.MalformedPayload
+	case engines.InternalError:
+		reason = runtime.InternalError
+	default:
+		reason = runtime.WorkerShutdown
+	}
+
+	err := t.plugin.Exception(reason)
+	if err != nil {
+		t.log.WithField("error", err.Error()).Warn("Could not finalize task plugins as exception.")
+	}
+
 	if t.context.IsCancelled() {
 		return
 	}
 
-	var reason string
-	switch err.(type) {
-	case engines.MalformedPayloadError:
-		reason = "malformed-payload"
-	case engines.InternalError:
-		reason = "internal-error"
-	default:
-		reason = "worker-shutdown"
+	e := reportException(t.QueueClient, t, reason, t.log)
+	if e != nil {
+		t.log.WithField("error", e.Error()).Warn("Could not resolve task as exception.")
 	}
 
-	update := TaskStatusUpdate{
-		Task:          t,
-		Status:        status,
-		Reason:        reason,
-		WorkerId:      t.TaskClaim.WorkerId,
-		ProvisionerId: t.TaskClaim.Status.ProvisionerId,
-		WorkerGroup:   t.TaskClaim.WorkerGroup,
-	}
-
-	<-UpdateTaskStatus(update, t.QueueClient, t.log)
 	return
 }
 

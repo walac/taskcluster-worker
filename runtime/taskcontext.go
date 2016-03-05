@@ -8,6 +8,17 @@ import (
 	"gopkg.in/djherbis/stream.v1"
 )
 
+// An ExceptionReason specifies the reason a task reached an exception state.
+type ExceptionReason string
+
+// Reasons why a task can reach an exception state. Implementors should be
+// warned that additional entries may be added in the future.
+const (
+	MalformedPayload ExceptionReason = "malformed-payload"
+	WorkerShutdown   ExceptionReason = "worker-shutdown"
+	InternalError    ExceptionReason = "internal-error"
+)
+
 type TaskStatus string
 
 // Enumerate task status to aid life-cycle decision making

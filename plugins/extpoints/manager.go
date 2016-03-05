@@ -227,7 +227,7 @@ func (m *taskPluginManager) Finished(s bool) error {
 	return waitForErrors(errors, len(m.taskPlugins))
 }
 
-func (m *taskPluginManager) Exception(r plugins.ExceptionReason) error {
+func (m *taskPluginManager) Exception(r runtime.ExceptionReason) error {
 	// Sanity check that no two methods on plugin is running in parallel, this way
 	// plugins don't have to be thread-safe, and we ensure nothing is called after
 	// Dispose() has been called.

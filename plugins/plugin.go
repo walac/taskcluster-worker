@@ -53,17 +53,6 @@ type Plugin interface {
 	NewTaskPlugin(options TaskPluginOptions) (TaskPlugin, error)
 }
 
-// An ExceptionReason specifies the reason a task reached an exception state.
-type ExceptionReason int
-
-// Reasons why a task can reach an exception state. Implementors should be
-// warned that additional entries may be added in the future.
-const (
-	Cancelled ExceptionReason = iota
-	MalformedPayload
-	WorkerShutdown
-)
-
 // TaskPlugin holds the task-specific state for a plugin
 //
 // Each method on this interface represents stage in the task execution and will
@@ -140,7 +129,7 @@ type TaskPlugin interface {
 	// Implementors should be aware that additional reasons may be added in the
 	// future. Therefore they must handle the default case, if switching on the
 	// reason parameter.
-	Exception(reason ExceptionReason) error
+	Exception(reason runtime.ExceptionReason) error
 
 	// Dispose is called once everything is done and it's time for clean-up.
 	//
@@ -208,7 +197,7 @@ func (TaskPluginBase) Finished(success bool) error {
 }
 
 // Exception ignores the stage where a task is resolved exception
-func (TaskPluginBase) Exception(reason ExceptionReason) error {
+func (TaskPluginBase) Exception(reason runtime.ExceptionReason) error {
 	return nil
 }
 

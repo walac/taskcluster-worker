@@ -125,6 +125,7 @@ func (m *Manager) Stop() {
 	select {
 	case <-done:
 		return
+	// Wait 2 minutes for all tasks to end, and then shutdown.
 	case <-time.After(2 * time.Minute):
 		close(done)
 		return
@@ -160,6 +161,7 @@ func (m *Manager) CancelTask(taskId string, runId int) {
 
 func (m *Manager) claimWork(ntasks int) {
 	if ntasks == 0 {
+
 		return
 	}
 
