@@ -92,6 +92,7 @@ func main() {
 		}{
 			ExpirationOffset: 300,
 		},
+		PollingInterval: 1,
 	}
 
 	l := logger.WithFields(logrus.Fields{

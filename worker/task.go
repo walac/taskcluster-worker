@@ -26,6 +26,7 @@ type TaskRun struct {
 	plugin          plugins.TaskPlugin
 	log             *logrus.Entry
 	payload         interface{}
+	pluginPayload   interface{}
 	sync.RWMutex
 	context        *runtime.TaskContext
 	controller     *runtime.TaskContextController
@@ -75,38 +76,15 @@ func (t *TaskRun) Run(pluginManager plugins.Plugin, engine engines.Engine, conte
 
 	defer t.DisposeStage()
 
-	jsonPayload := map[string]json.RawMessage{}
-	if err := json.Unmarshal(t.Definition.Payload, &jsonPayload); err != nil {
+	err := t.ParsePayload(pluginManager, engine)
+	if err != nil || t.context.IsAborted() || t.context.IsCancelled() {
 		t.context.LogError(fmt.Sprintf("Invalid task payload. %s", err))
 		t.ExceptionStage(runtime.Errored, err)
 		return
 	}
 
-	p, err := engine.PayloadSchema().Parse(jsonPayload)
-	if err != nil {
-		t.context.LogError(fmt.Sprintf("Invalid task payload. %s", err))
-		t.ExceptionStage(runtime.Errored, err)
-		return
-	}
-	t.payload = p
-
-	ps, err := pluginManager.PayloadSchema()
-	if err != nil {
-		t.context.LogError(fmt.Sprintf("Invalid task payload. %s", err))
-		t.ExceptionStage(runtime.Errored, err)
-		return
-	}
-
-	pluginPayload, err := ps.Parse(jsonPayload)
-	if err != nil {
-		t.context.LogError(fmt.Sprintf("Invalid task payload. %s", err))
-		t.ExceptionStage(runtime.Errored, err)
-		return
-	}
-
-	popts := plugins.TaskPluginOptions{TaskInfo: &runtime.TaskInfo{}, Payload: pluginPayload}
-	t.plugin, err = pluginManager.NewTaskPlugin(popts)
-	if err != nil {
+	err = t.CreateTaskPlugins(pluginManager)
+	if err != nil || t.context.IsAborted() || t.context.IsCancelled() {
 		t.context.LogError(fmt.Sprintf("Invalid task payload. %s", err))
 		t.ExceptionStage(runtime.Errored, err)
 		return
@@ -149,6 +127,40 @@ func (t *TaskRun) Run(pluginManager plugins.Plugin, engine engines.Engine, conte
 		return
 	}
 
+}
+
+func (t *TaskRun) ParsePayload(pluginManager plugins.Plugin, engine engines.Engine) error {
+	var err error
+	jsonPayload := map[string]json.RawMessage{}
+	if err = json.Unmarshal(t.Definition.Payload, &jsonPayload); err != nil {
+		return err
+	}
+
+	t.payload, err = engine.PayloadSchema().Parse(jsonPayload)
+	if err != nil {
+		return err
+	}
+
+	ps, err := pluginManager.PayloadSchema()
+	if err != nil {
+	}
+
+	t.pluginPayload, err = ps.Parse(jsonPayload)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *TaskRun) CreateTaskPlugins(pluginManager plugins.Plugin) error {
+	var err error
+	popts := plugins.TaskPluginOptions{TaskInfo: &runtime.TaskInfo{}, Payload: t.pluginPayload}
+	t.plugin, err = pluginManager.NewTaskPlugin(popts)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // PrepareStage is where task plugins are prepared and a sandboxbuilder is created.

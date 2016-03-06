@@ -88,7 +88,7 @@ func newTaskManager(config *config.Config, engine engines.Engine, environment *r
 // Start will initiliaze a polling cycle for tasks and spawn goroutines to
 // execute units of work that has been claimed.
 func (m *Manager) Start(stop <-chan struct{}, done chan struct{}) {
-	m.log.Info("Polling for tasks every %d seconds\n", m.interval)
+	m.log.Infof("Polling for tasks every %d seconds\n", m.interval)
 	doWork := time.NewTicker(time.Duration(m.interval) * time.Second)
 	for {
 		select {
