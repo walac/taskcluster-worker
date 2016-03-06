@@ -132,7 +132,7 @@ func (t *TaskRun) Run(pluginManager plugins.Plugin, engine engines.Engine, conte
 func (t *TaskRun) ParsePayload(pluginManager plugins.Plugin, engine engines.Engine) error {
 	var err error
 	jsonPayload := map[string]json.RawMessage{}
-	if err = json.Unmarshal(t.Definition.Payload, &jsonPayload); err != nil {
+	if err = json.Unmarshal([]byte(t.Definition.Payload), &jsonPayload); err != nil {
 		return err
 	}
 
@@ -265,6 +265,7 @@ func (t *TaskRun) FinishStage() error {
 // Tasks that have been cancelled will not be reported as an exception as the run
 // has already been resolved.
 func (t *TaskRun) ExceptionStage(status runtime.TaskStatus, taskError error) {
+	fmt.Println(taskError)
 	var reason runtime.ExceptionReason
 	switch taskError.(type) {
 	case engines.MalformedPayloadError:
@@ -275,6 +276,7 @@ func (t *TaskRun) ExceptionStage(status runtime.TaskStatus, taskError error) {
 		reason = runtime.WorkerShutdown
 	}
 
+	// TODO (garndt): handle when task plugins haven't been created yet
 	err := t.plugin.Exception(reason)
 	if err != nil {
 		t.log.WithField("error", err.Error()).Warn("Could not finalize task plugins as exception.")
