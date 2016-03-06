@@ -19,6 +19,7 @@ const (
 	InternalError    ExceptionReason = "internal-error"
 )
 
+// TaskStatus represents the current status of the task.
 type TaskStatus string
 
 // Enumerate task status to aid life-cycle decision making

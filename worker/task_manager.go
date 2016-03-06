@@ -1,7 +1,6 @@
 package worker
 
 import (
-	"errors"
 	"fmt"
 	"math"
 	"sync"
@@ -106,6 +105,8 @@ func (m *Manager) Start(stop <-chan struct{}, done chan struct{}) {
 	}
 }
 
+// Stop should be called when the worker should gracefully end the execution of
+// all running tasks before completely shutting down.
 func (m *Manager) Stop() {
 	defer close(m.done)
 	for _, v := range m.tasks {
@@ -132,18 +133,24 @@ func (m *Manager) Stop() {
 	}
 }
 
+// RunningTasks returns the list of task names that are currently running. This could
+// be useful for determining the number of tasks currently running or snapshotting
+// the current running task list at a moment in time.
 func (m *Manager) RunningTasks() []string {
 	m.RLock()
 	defer m.RUnlock()
 
 	tasks := []string{}
-	for k, _ := range m.tasks {
+	for k := range m.tasks {
 		tasks = append(tasks, k)
 	}
 
 	return tasks
 }
 
+// CancelTask will cancel a running task.  Typically this will be called when a Pulse
+// message is received to cancel a task.  Calling this method will not resolve the task
+// as it's assumed that this task was already resolved as cancelled by another system/client.
 func (m *Manager) CancelTask(taskId string, runId int) {
 	name := fmt.Sprintf("%s/%d", taskId, runId)
 
@@ -207,7 +214,7 @@ func (m *Manager) registerTask(task *TaskRun) error {
 
 	_, exists := m.tasks[name]
 	if exists {
-		return errors.New(fmt.Sprintf("Cannot register task %s. Task already exists.", name))
+		return fmt.Errorf("Cannot register task %s. Task already exists.", name)
 	}
 
 	m.tasks[name] = task
@@ -223,7 +230,7 @@ func (m *Manager) deregisterTask(task *TaskRun) error {
 
 	_, exists := m.tasks[name]
 	if !exists {
-		return errors.New(fmt.Sprintf("Cannot deregister task %s. Task does not exist", name))
+		return fmt.Errorf("Cannot deregister task %s. Task does not exist", name)
 	}
 
 	delete(m.tasks, name)

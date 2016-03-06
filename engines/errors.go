@@ -67,6 +67,7 @@ type MalformedPayloadError struct {
 	message string
 }
 
+// Error returns the error message and adheres to the Error interface
 func (e MalformedPayloadError) Error() string {
 	return e.message
 }
@@ -81,10 +82,14 @@ func NewMalformedPayloadError(message string) MalformedPayloadError {
 	return MalformedPayloadError{message: message}
 }
 
+// InternalError are errors that could not be completed because of issues related to the
+// host.  These issues could include issues with the engine, host resources, and worker
+// configuration.
 type InternalError struct {
 	message string
 }
 
+// Error returns the error message and adheres to the Error interface
 func (e InternalError) Error() string {
 	return e.message
 }

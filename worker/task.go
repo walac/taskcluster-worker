@@ -13,6 +13,8 @@ import (
 	"github.com/taskcluster/taskcluster-worker/runtime"
 )
 
+// TaskRun represents the task lifecycle once claimed.  TaskRun contains information
+// about the task as well as controllers for executing and resolving the task.
 type TaskRun struct {
 	TaskId          string                       `json:"taskId"`
 	RunId           uint                         `json:"runId"`
@@ -57,37 +59,6 @@ func (t *TaskRun) Cancel() {
 	if t.sandbox != nil {
 		t.sandbox.Abort()
 	}
-}
-
-// ExceptionStage will report a task run as an exception with an appropriate reason.
-// Tasks that have been cancelled will not be reported as an exception as the run
-// has already been resolved.
-func (t *TaskRun) ExceptionStage(status runtime.TaskStatus, taskError error) {
-	var reason runtime.ExceptionReason
-	switch taskError.(type) {
-	case engines.MalformedPayloadError:
-		reason = runtime.MalformedPayload
-	case engines.InternalError:
-		reason = runtime.InternalError
-	default:
-		reason = runtime.WorkerShutdown
-	}
-
-	err := t.plugin.Exception(reason)
-	if err != nil {
-		t.log.WithField("error", err.Error()).Warn("Could not finalize task plugins as exception.")
-	}
-
-	if t.context.IsCancelled() {
-		return
-	}
-
-	e := reportException(t.QueueClient, t, reason, t.log)
-	if e != nil {
-		t.log.WithField("error", e.Error()).Warn("Could not resolve task as exception.")
-	}
-
-	return
 }
 
 // Run is the entrypoint to executing a task run.  The task payload will be parsed,
@@ -180,35 +151,7 @@ func (t *TaskRun) Run(pluginManager plugins.Plugin, engine engines.Engine, conte
 
 }
 
-func (t *TaskRun) ResolveTask() error {
-	resolve := reportCompleted
-	if !t.resultSet.Success() {
-		resolve = reportFailed
-	}
-
-	err := resolve(t.QueueClient, t, t.log)
-	if err != nil {
-		return errors.New(err.Error())
-	}
-	return nil
-}
-
-// DisposeStage is responsible for cleaning up resources allocated for the task execution.
-// This will involve closing all necessary files and disposing of contexts, plugins, and sandboxes.
-func (t *TaskRun) DisposeStage() {
-	err := t.controller.CloseLog()
-	if err != nil {
-		t.log.WithField("error", err.Error()).Warn("Could not properly close task log")
-	}
-	err = t.controller.Dispose()
-	if err != nil {
-		t.log.WithField("error", err.Error()).Warn("Could not dispose of task context")
-	}
-	return
-}
-
-// PrepareStage is the first stage of the task life cycle where task plugins are prepared
-// and a sandboxbuilder is created.
+// PrepareStage is where task plugins are prepared and a sandboxbuilder is created.
 func (t *TaskRun) PrepareStage(engine engines.Engine) error {
 	t.log.Debug("Preparing task run")
 
@@ -232,8 +175,7 @@ func (t *TaskRun) PrepareStage(engine engines.Engine) error {
 	return nil
 }
 
-// BuildStage is the second stage of the task life cycle.  This stage is responsible for
-// configuring the environment for building a sandbox (task execution environment).
+// BuildStage is responsible for configuring the environment for building a sandbox (task execution environment).
 func (t *TaskRun) BuildStage() error {
 	t.log.Debug("Building task run")
 
@@ -246,8 +188,7 @@ func (t *TaskRun) BuildStage() error {
 	return nil
 }
 
-// StartStage is the third stage of the task life cycle.  This stage is responsible for
-// starting the execution environment and waiting for a result.
+// StartStage is responsible for starting the execution environment and waiting for a result.
 func (t *TaskRun) StartStage() error {
 	t.log.Debug("Running task")
 
@@ -277,6 +218,8 @@ func (t *TaskRun) StartStage() error {
 	return nil
 }
 
+// StopStage will run once the sandbox has terminated.  This stage will be responsible
+// for uploading artifacts, cleaning up of resources, etc.
 func (t *TaskRun) StopStage() error {
 	t.log.Debug("Stopping task execution")
 	success, err := t.plugin.Stopped(t.resultSet)
@@ -292,7 +235,7 @@ func (t *TaskRun) StopStage() error {
 	return nil
 }
 
-// FinishStage will be responsible for finalizing the execution of a task, close and
+// FinishStage is responsible for finalizing the execution of a task, close and
 // upload tasks logs, etc.
 func (t *TaskRun) FinishStage() error {
 	t.log.Debug("Finishing task run")
@@ -304,4 +247,64 @@ func (t *TaskRun) FinishStage() error {
 	}
 
 	return nil
+}
+
+// ExceptionStage will report a task run as an exception with an appropriate reason.
+// Tasks that have been cancelled will not be reported as an exception as the run
+// has already been resolved.
+func (t *TaskRun) ExceptionStage(status runtime.TaskStatus, taskError error) {
+	var reason runtime.ExceptionReason
+	switch taskError.(type) {
+	case engines.MalformedPayloadError:
+		reason = runtime.MalformedPayload
+	case engines.InternalError:
+		reason = runtime.InternalError
+	default:
+		reason = runtime.WorkerShutdown
+	}
+
+	err := t.plugin.Exception(reason)
+	if err != nil {
+		t.log.WithField("error", err.Error()).Warn("Could not finalize task plugins as exception.")
+	}
+
+	if t.context.IsCancelled() {
+		return
+	}
+
+	e := reportException(t.QueueClient, t, reason, t.log)
+	if e != nil {
+		t.log.WithField("error", e.Error()).Warn("Could not resolve task as exception.")
+	}
+
+	return
+}
+
+// ResolveTask will resolve the task as completed/failed depending on the outcome
+// of executing the task and finalizing the task plugins.
+func (t *TaskRun) ResolveTask() error {
+	resolve := reportCompleted
+	if !t.resultSet.Success() {
+		resolve = reportFailed
+	}
+
+	err := resolve(t.QueueClient, t, t.log)
+	if err != nil {
+		return errors.New(err.Error())
+	}
+	return nil
+}
+
+// DisposeStage is responsible for cleaning up resources allocated for the task execution.
+// This will involve closing all necessary files and disposing of contexts, plugins, and sandboxes.
+func (t *TaskRun) DisposeStage() {
+	err := t.controller.CloseLog()
+	if err != nil {
+		t.log.WithField("error", err.Error()).Warn("Could not properly close task log")
+	}
+	err = t.controller.Dispose()
+	if err != nil {
+		t.log.WithField("error", err.Error()).Warn("Could not dispose of task context")
+	}
+	return
 }
