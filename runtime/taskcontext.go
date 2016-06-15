@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	"sync"
 
 	"github.com/taskcluster/taskcluster-client-go/tcclient"
 	"github.com/taskcluster/taskcluster-worker/runtime/client"
+	"github.com/taskcluster/taskcluster-worker/runtime/ioext"
 	"github.com/taskcluster/taskcluster-worker/runtime/webhookserver"
 
 	"gopkg.in/djherbis/stream.v1"
@@ -63,12 +65,14 @@ type TaskInfo struct {
 // properties, and abortion notifications.
 type TaskContext struct {
 	TaskInfo
-	webHookSet *webhookserver.WebHookSet
-	logStream  *stream.Stream
-	mu         sync.RWMutex
-	queue      client.Queue
-	status     TaskStatus
-	cancelled  bool
+	webHookSet  *webhookserver.WebHookSet
+	logStream   *stream.Stream
+	logLocation string
+	logClosed   bool
+	mu          sync.RWMutex
+	queue       client.Queue
+	status      TaskStatus
+	cancelled   bool
 }
 
 // TaskContextController exposes logic for controlling the TaskContext.
@@ -80,25 +84,38 @@ type TaskContextController struct {
 }
 
 // NewTaskContext creates a TaskContext and associated TaskContextController
-func NewTaskContext(tempLogFile string, task TaskInfo) (*TaskContext, *TaskContextController, error) {
+func NewTaskContext(tempLogFile string,
+	task TaskInfo,
+	server webhookserver.WebHookServer) (*TaskContext, *TaskContextController, error) {
 	logStream, err := stream.New(tempLogFile)
 	if err != nil {
 		return nil, nil, err
 	}
 	ctx := &TaskContext{
-		logStream: logStream,
-		TaskInfo:  task,
+		logStream:   logStream,
+		logLocation: tempLogFile,
+		TaskInfo:    task,
+		webHookSet:  webhookserver.NewWebHookSet(server),
 	}
 	return ctx, &TaskContextController{ctx}, nil
 }
 
 // CloseLog will close the log so no more messages can be written.
 func (c *TaskContextController) CloseLog() error {
+	if c.logClosed {
+		return nil
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.logClosed = true
 	return c.logStream.Close()
 }
 
 // Dispose will clean-up all resources held by the TaskContext
 func (c *TaskContextController) Dispose() error {
+	c.webHookSet.Dispose()
+
 	return c.logStream.Remove()
 }
 
@@ -193,6 +210,15 @@ func (c *TaskContext) LogDrain() io.Writer {
 // Consumers should ensure the ReadCloser is closed before discarding it.
 func (c *TaskContext) NewLogReader() (io.ReadCloser, error) {
 	return c.logStream.NextReader()
+}
+
+func (c *TaskContext) ExtractLog() (ioext.ReadSeekCloser, error) {
+	file, err := os.Open(c.logLocation)
+	if err != nil {
+		return nil, err
+	}
+
+	return file, nil
 }
 
 // AttachWebHook will take an http.Handler and expose it to the internet such
