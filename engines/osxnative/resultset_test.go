@@ -4,16 +4,18 @@ package osxnative
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	osuser "os/user"
+	"path"
+	"path/filepath"
+	"testing"
+
 	"github.com/Sirupsen/logrus"
 	assert "github.com/stretchr/testify/require"
 	"github.com/taskcluster/taskcluster-worker/engines"
 	"github.com/taskcluster/taskcluster-worker/runtime"
 	"github.com/taskcluster/taskcluster-worker/runtime/ioext"
-	"io/ioutil"
-	"os"
-	osuser "os/user"
-	"path"
-	"testing"
 )
 
 type testCase struct {
@@ -104,6 +106,10 @@ func TestExtractFolder(t *testing.T) {
 	assert.Equal(t, err, engines.ErrResourceNotFound)
 
 	err = r.ExtractFolder("test-data", func(p string, stream ioext.ReadSeekCloser) error {
+		if _, err := os.Stat(filepath.Join("test-data", p)); err != nil {
+			return fmt.Errorf("%s should be a valid path relative to test-data directory: %v", p, err)
+		}
+
 		expected := path.Base(p) + "\n"
 		data, err := ioutil.ReadAll(stream)
 		sdata := string(data)
