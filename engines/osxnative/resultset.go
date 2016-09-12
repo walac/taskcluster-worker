@@ -84,7 +84,7 @@ func (r resultset) ExtractFolder(path string, handler engines.FileHandler) error
 			return engines.ErrResourceNotFound
 		}
 
-		if !info.IsDir() {
+		if ioext.IsPlainFileInfo(info) {
 			file, err := os.Open(p)
 			if err != nil {
 				r.context.LogError(err)
