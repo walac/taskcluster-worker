@@ -1,68 +1,54 @@
 language: go
-
 go: 1.7
-
 env:
-  - MY_GOOS=linux
-    MY_GOARCH=amd64
-
+- MY_GOOS=linux MY_GOARCH=amd64
 matrix:
   include:
-    - os: osx
-      env:
-        - MY_GOOS=darwin
-        - MY_GOARCH=amd64
-    - os: linux
-      env:
-        - MY_GOOS=windows
-        - MY_GOARCH=amd64
-    - os: linux
-      env:
-        - MY_GOOS=windows
-        - MY_GOARCH=386
-
+  - os: osx
+    env:
+    - MY_GOOS=darwin
+    - MY_GOARCH=amd64
+  - os: linux
+    env:
+    - MY_GOOS=windows
+    - MY_GOARCH=amd64
+  - os: linux
+    env:
+    - MY_GOOS=windows
+    - MY_GOARCH=386
 before_install:
-  - export GOOS=${MY_GOOS}
-  - export GOARCH=${MY_GOARCH}
-  - go version
-  - go env
-
+- export GOOS=${MY_GOOS}
+- export GOARCH=${MY_GOARCH}
+- go version
+- go env
 install:
-  - "echo No go get steps since we have vendored packages..."
-
+- echo No go get steps since we have vendored packages...
 script:
-# note - below, || is used rather than && to ensure we only get zero exit code if all is ok
-  - "test $GOOS != windows || make build"
-  - "test $GOOS == windows || (go get github.com/axw/gocov/gocov github.com/mattn/goveralls golang.org/x/tools/cmd/cover github.com/pierrre/gotestcover && make rebuild check && ${GOPATH}/bin/gotestcover -v -coverprofile=coverage.report $(go list ./... | grep -v /vendor/) && go tool cover -func=coverage.report)"
-
+- test $GOOS != windows || make build
+- test $GOOS == windows || (go get github.com/axw/gocov/gocov github.com/mattn/goveralls
+  golang.org/x/tools/cmd/cover github.com/pierrre/gotestcover && make rebuild check
+  && ${GOPATH}/bin/gotestcover -v -coverprofile=coverage.report $(go list ./... |
+  grep -v /vendor/) && go tool cover -func=coverage.report)
 after_script:
-  - "if test $GOOS != windows; then $HOME/gopath/bin/goveralls -coverprofile=coverage.report -service=travis-ci; fi"
-
+- if test $GOOS != windows; then $HOME/gopath/bin/goveralls -coverprofile=coverage.report
+  -service=travis-ci; fi
 before_deploy:
-  - "source .travis_rename_releases.sh"
-
+- source .travis_rename_releases.sh
 deploy:
-  api_key:
-    secure: C+zuSru+yiMrFnyIllZukhTDt9L1krfbZQ9hNCFhjPtLkL+ytISlklw7A9p7NpSJvd7kGqYOjbFq3nZDsUnZG7S4QJ9u/U3xD2BcBrwVTnUWDZv/iit65m7xQSCdkLv+4myhaqH6dvcU6TNjZNrcEmBKxTBXgoSd4OpI89TifCLjcbcrKFrv8JXsTwsYH2N68AXV5CAxjl7X79hicZm82TIyisgcXKm96n7Y2kxPrVDvvQ508blD52EQsBszpzNh9F2THw3uglfeHFCYYUBzntSMbYKRtMTXNrtlvFpJUadIuzvB2DxBQIAoM3NDnEOVIbjLMjT2Fzvq5cVmBFyY7ymxEO7R9wC0IHaYruloXrpG1Ss+tK+Yom/hwXXeoHCWvFFDKzMWFaG/TYDKCmoSLRh65XAEWuueyo8g/ONybzpb377XnqMDa6imT0FtfDww3U+sqpV7DtpgilIRqodINVPXhS62sU648ZSi4DIY66DjUkX8MHL9fXKQkFHwTK6bS7sJctzjUCWkxUC0a7QpRndaSBdojK7/7kSC7yQJ+7j2jdZojAQcAz+is8erQlDHM9E8sCNTpyaAW75Koh9w/hdpR/U0Z8mKtdqwYlxpG7SqaKpJj2VfeBx2NsiK7oRPpmXU6Cye+jAKobUW96IKvHsCzdOvgOoPI4cX7qxDEEs=
-  file:
-    - "${RELEASE_FILE}"
   provider: releases
-  skip_cleanup: true
+  api_key:
+    secure: cu/NGGwIomf2FaMuh0Q3z3UCw/LtMzb1WYRtxz1nNN7s9bpJugOiPDqxKheQlvPKfpI0YjAi3lXYAkzhwsCJPGzWp3FCSGTsGDEAzCWMgw2PMizgmoK7xcwv5UD3l4Ut8GHjj8KBPuFB8JX3AD6VKipgfUX1E2ljq5n9DdjwfCQBuvRT1EGpUUyZQDOij6IrnyP131MuCFZ+uvnt5xpkVf/VI1gzHXLzWJY097GPiDL3eDqAw0GaBtVwqR40ZJthHNt3LaTEM6wOTGJBmpfvtxiSvVXaGzu73jnpJ2C/nDuiDPdy/PcMemFHp8OVrs+aPBSt53PGaWTCvl8x8rbayMbGNREUL2v45D4XYek9GUoLXLzdvcXuh5zsRnxo/x+nqQuirxQMltMH1anIHurZzjd3xhDIHLDJGx2/IF4w1eVMeuUgwkpffzPLDwEz1D8rr+0qI1qQLVstgXPhkE1exBCtEXDweg93WNTHHRs8prynPCYLHpGCI0BhnnBKhZAIiEitgocMguHLaKnzfEd/j6JyhZ8zlv7BAAp+8+uz9SQE3fB9aytBGasQQBSyB6Yzt/+2mxga4VxfKjc/eD3msQ1NuUpP+oyrxMx2iHKkLxFvYY/DGPt2mayngyfXf7iZSbAWakiGNWeyF4drFxyKQpxrrfruRI/muBA4dHhI7gY=
+  file: "${RELEASE_FILE}"
   on:
-    repo: walac/taskcluster-worker
     tags: true
-
-# encrpyt channel name to get around issue
-# https://github.com/travis-ci/travis-ci/issues/1094
 notifications:
   irc:
     channels:
-    # encrpyted string was "irc.mozilla.org#taskcluster-bots"
-      - secure: "oTVLnjY0DGp95VEO6+PkEgRdg6CFQkLRBiEYbS/Ak0o4wdD4nrZ1XGpMcl9HwGsy6jZ6m0TfvT4Db2RXfmaA5r0rvt0miZkHTrgqrn5qy/XzDSykP8x724+/wan3iCDtqeMI+pSzZqyxMDwuY0M01NlEK4+6sZUL310LBGFS56S4qinAYrgAgDs8vRB+n6Nv3eA4uaxIXN7+6TmOq8cZyHUMO5J+qSe5TjcQt0mheb1gcUupvUhPOTk95oQVm7YH1iYIcKdWB4msrziRGo9zC1hnVupAaanD4avJRZ9i5EQDVl9YicgzhfotwW4Sh8SXVs1DIL20kqyw0AvB4wdNxo/Dgakdg6KjZvmNjEEbWWydWAZrbXz2e6Qa6HKy9R5F/eClfbHCC9c1ebi35mh9OLgnhPpjXTYH3eaiFjk6POaiBktzIUKTM8SaZpKeuyxZPe6dJDhsYPkDohhv2dMnGDxoJOHVoUza+d8NcuJ4wCD3amAigCPmG3mIKO1dv5GPVBnj9j08Iq3ign0qGPXeu+ouBQ6PtTM1wL3MWJktD0xsMAS+WY3NXFVDSBe593jweMBDCQAs0i8+5BgPOvlAh0vDzxvPpA85761lD8GGXIxRk7AdRja0h7cNLJP5zsxQxcI2MZPpTbrCpgeYJZI+r4Txw3+gLItpcNpmPWEnRFQ="
+    - secure: oTVLnjY0DGp95VEO6+PkEgRdg6CFQkLRBiEYbS/Ak0o4wdD4nrZ1XGpMcl9HwGsy6jZ6m0TfvT4Db2RXfmaA5r0rvt0miZkHTrgqrn5qy/XzDSykP8x724+/wan3iCDtqeMI+pSzZqyxMDwuY0M01NlEK4+6sZUL310LBGFS56S4qinAYrgAgDs8vRB+n6Nv3eA4uaxIXN7+6TmOq8cZyHUMO5J+qSe5TjcQt0mheb1gcUupvUhPOTk95oQVm7YH1iYIcKdWB4msrziRGo9zC1hnVupAaanD4avJRZ9i5EQDVl9YicgzhfotwW4Sh8SXVs1DIL20kqyw0AvB4wdNxo/Dgakdg6KjZvmNjEEbWWydWAZrbXz2e6Qa6HKy9R5F/eClfbHCC9c1ebi35mh9OLgnhPpjXTYH3eaiFjk6POaiBktzIUKTM8SaZpKeuyxZPe6dJDhsYPkDohhv2dMnGDxoJOHVoUza+d8NcuJ4wCD3amAigCPmG3mIKO1dv5GPVBnj9j08Iq3ign0qGPXeu+ouBQ6PtTM1wL3MWJktD0xsMAS+WY3NXFVDSBe593jweMBDCQAs0i8+5BgPOvlAh0vDzxvPpA85761lD8GGXIxRk7AdRja0h7cNLJP5zsxQxcI2MZPpTbrCpgeYJZI+r4Txw3+gLItpcNpmPWEnRFQ=
     on_failure: always
     on_success: change
     template:
-      - "%{repository}#%{build_number} (%{branch} - %{commit} : %{author}): %{message}"
-      - "Change view : %{compare_url}"
-      - "Build details : %{build_url}"
-      - "Commit message : %{commit_message}"
+    - "%{repository}#%{build_number} (%{branch} - %{commit} : %{author}): %{message}"
+    - 'Change view : %{compare_url}'
+    - 'Build details : %{build_url}'
+    - 'Commit message : %{commit_message}'
