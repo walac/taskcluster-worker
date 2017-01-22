@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/taskcluster/taskcluster-worker/commands/qemu-run"
-	"github.com/taskcluster/taskcluster-worker/engines/qemu/image"
-	"github.com/taskcluster/taskcluster-worker/engines/qemu/network"
-	"github.com/taskcluster/taskcluster-worker/engines/qemu/vm"
+	"github.com/walac/taskcluster-worker/commands/qemu-run"
+	"github.com/walac/taskcluster-worker/engines/qemu/image"
+	"github.com/walac/taskcluster-worker/engines/qemu/network"
+	"github.com/walac/taskcluster-worker/engines/qemu/vm"
 )
 
 func buildImage(

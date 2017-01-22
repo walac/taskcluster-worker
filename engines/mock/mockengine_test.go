@@ -3,8 +3,8 @@ package mockengine
 import (
 	t "testing"
 
-	"github.com/taskcluster/taskcluster-worker/engines"
-	"github.com/taskcluster/taskcluster-worker/engines/enginetest"
+	"github.com/walac/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/engines/enginetest"
 )
 
 var provider = &enginetest.EngineProvider{

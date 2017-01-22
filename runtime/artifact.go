@@ -12,7 +12,7 @@ import (
 	got "github.com/taskcluster/go-got"
 	"github.com/taskcluster/taskcluster-client-go"
 	"github.com/taskcluster/taskcluster-client-go/queue"
-	"github.com/taskcluster/taskcluster-worker/runtime/ioext"
+	"github.com/walac/taskcluster-worker/runtime/ioext"
 )
 
 // S3Artifact wraps all of the needed fields to upload an s3 artifact

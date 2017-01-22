@@ -10,8 +10,8 @@ import (
 
 	"github.com/taskcluster/slugid-go/slugid"
 	"github.com/taskcluster/taskcluster-client-go/queue"
-	"github.com/taskcluster/taskcluster-worker/runtime/client"
-	"github.com/taskcluster/taskcluster-worker/runtime/ioext"
+	"github.com/walac/taskcluster-worker/runtime/client"
+	"github.com/walac/taskcluster-worker/runtime/ioext"
 )
 
 func setupArtifactTest(name string, artifactResp queue.PostArtifactRequest) (*TaskContext, *client.MockQueue) {

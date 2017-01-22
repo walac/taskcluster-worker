@@ -16,9 +16,9 @@ import (
 	"io"
 	"os"
 
-	"github.com/taskcluster/taskcluster-worker/commands"
-	"github.com/taskcluster/taskcluster-worker/runtime"
-	"github.com/taskcluster/taskcluster-worker/runtime/util"
+	"github.com/walac/taskcluster-worker/commands"
+	"github.com/walac/taskcluster-worker/runtime"
+	"github.com/walac/taskcluster-worker/runtime/util"
 )
 
 var debug = util.Debug("guesttools")

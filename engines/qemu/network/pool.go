@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/taskcluster/taskcluster-worker/runtime/atomics"
+	"github.com/walac/taskcluster-worker/runtime/atomics"
 
 	"gopkg.in/tylerb/graceful.v1"
 )

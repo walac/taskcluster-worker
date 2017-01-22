@@ -7,7 +7,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/gorilla/websocket"
-	"github.com/taskcluster/taskcluster-worker/plugins/interactive/displayconsts"
+	"github.com/walac/taskcluster-worker/plugins/interactive/displayconsts"
 )
 
 // DisplayHandler handles serving a VNC display socket over a websocket,

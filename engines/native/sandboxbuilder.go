@@ -4,8 +4,8 @@ import (
 	"regexp"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/taskcluster/taskcluster-worker/engines"
-	"github.com/taskcluster/taskcluster-worker/runtime"
+	"github.com/walac/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/runtime"
 )
 
 type sandboxBuilder struct {

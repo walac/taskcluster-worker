@@ -7,13 +7,13 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/taskcluster/taskcluster-worker/engines"
-	"github.com/taskcluster/taskcluster-worker/engines/qemu/image"
-	"github.com/taskcluster/taskcluster-worker/engines/qemu/metaservice"
-	"github.com/taskcluster/taskcluster-worker/engines/qemu/network"
-	"github.com/taskcluster/taskcluster-worker/engines/qemu/vm"
-	"github.com/taskcluster/taskcluster-worker/runtime"
-	"github.com/taskcluster/taskcluster-worker/runtime/atomics"
+	"github.com/walac/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/engines/qemu/image"
+	"github.com/walac/taskcluster-worker/engines/qemu/metaservice"
+	"github.com/walac/taskcluster-worker/engines/qemu/network"
+	"github.com/walac/taskcluster-worker/engines/qemu/vm"
+	"github.com/walac/taskcluster-worker/runtime"
+	"github.com/walac/taskcluster-worker/runtime/atomics"
 )
 
 type sandbox struct {

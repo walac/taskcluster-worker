@@ -17,8 +17,8 @@ import (
 	logrus "github.com/Sirupsen/logrus"
 	"github.com/taskcluster/httpbackoff"
 	"github.com/taskcluster/taskcluster-client-go"
-	"github.com/taskcluster/taskcluster-worker/runtime/atomics"
-	"github.com/taskcluster/taskcluster-worker/runtime/client"
+	"github.com/walac/taskcluster-worker/runtime/atomics"
+	"github.com/walac/taskcluster-worker/runtime/client"
 )
 
 type (

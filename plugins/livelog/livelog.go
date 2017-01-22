@@ -11,10 +11,10 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/taskcluster/taskcluster-client-go"
-	"github.com/taskcluster/taskcluster-worker/plugins"
-	"github.com/taskcluster/taskcluster-worker/runtime"
-	"github.com/taskcluster/taskcluster-worker/runtime/atomics"
-	"github.com/taskcluster/taskcluster-worker/runtime/ioext"
+	"github.com/walac/taskcluster-worker/plugins"
+	"github.com/walac/taskcluster-worker/runtime"
+	"github.com/walac/taskcluster-worker/runtime/atomics"
+	"github.com/walac/taskcluster-worker/runtime/ioext"
 )
 
 type pluginProvider struct {

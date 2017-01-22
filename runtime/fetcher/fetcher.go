@@ -5,7 +5,7 @@ import (
 	"io"
 
 	schematypes "github.com/taskcluster/go-schematypes"
-	"github.com/taskcluster/taskcluster-worker/runtime/client"
+	"github.com/walac/taskcluster-worker/runtime/client"
 )
 
 // Context for fetching resource from a reference.

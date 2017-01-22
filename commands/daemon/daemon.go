@@ -5,7 +5,7 @@ import (
 	"os"
 
 	daemonize "github.com/takama/daemon"
-	"github.com/taskcluster/taskcluster-worker/commands"
+	"github.com/walac/taskcluster-worker/commands"
 )
 
 const (

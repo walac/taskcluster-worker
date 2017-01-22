@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/taskcluster/taskcluster-worker/runtime/client"
+	"github.com/walac/taskcluster-worker/runtime/client"
 )
 
 type mockContext struct {

@@ -6,10 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/taskcluster/taskcluster-worker/engines"
-	"github.com/taskcluster/taskcluster-worker/engines/qemu/metaservice"
-	"github.com/taskcluster/taskcluster-worker/engines/qemu/vm"
-	"github.com/taskcluster/taskcluster-worker/runtime/ioext"
+	"github.com/walac/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/engines/qemu/metaservice"
+	"github.com/walac/taskcluster-worker/engines/qemu/vm"
+	"github.com/walac/taskcluster-worker/runtime/ioext"
 )
 
 // sessionManager is responsible for creating, tracking and aborting shells and

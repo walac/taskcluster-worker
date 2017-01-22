@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/taskcluster/taskcluster-worker/config"
+	"github.com/walac/taskcluster-worker/config"
 )
 
 // Case allows declaration of a transformation to run on input and validate

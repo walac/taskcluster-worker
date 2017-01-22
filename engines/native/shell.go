@@ -5,9 +5,9 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/taskcluster/taskcluster-worker/engines"
-	"github.com/taskcluster/taskcluster-worker/engines/native/system"
-	"github.com/taskcluster/taskcluster-worker/runtime/atomics"
+	"github.com/walac/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/engines/native/system"
+	"github.com/walac/taskcluster-worker/runtime/atomics"
 )
 
 type shell struct {

@@ -17,7 +17,7 @@
 //     	system.KillByOwner(user *User) error
 package system
 
-import "github.com/taskcluster/taskcluster-worker/runtime/util"
+import "github.com/walac/taskcluster-worker/runtime/util"
 
 // TODO: Implement the following methods to support cache folder.
 //      system.Group.Remove()

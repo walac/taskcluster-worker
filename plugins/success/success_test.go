@@ -3,7 +3,7 @@ package success
 import (
 	"testing"
 
-	"github.com/taskcluster/taskcluster-worker/plugins/plugintest"
+	"github.com/walac/taskcluster-worker/plugins/plugintest"
 )
 
 func TestSuccessSuccessPlugin(*testing.T) {

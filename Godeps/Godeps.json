@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/taskcluster/taskcluster-worker",
+	"ImportPath": "github.com/walac/taskcluster-worker",
 	"GoVersion": "go1.7",
 	"GodepVersion": "v74",
 	"Packages": [

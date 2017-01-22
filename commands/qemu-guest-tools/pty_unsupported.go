@@ -5,7 +5,7 @@ package qemuguesttools
 import (
 	"os/exec"
 
-	"github.com/taskcluster/taskcluster-worker/plugins/interactive"
+	"github.com/walac/taskcluster-worker/plugins/interactive"
 )
 
 func pipePty(cmd *exec.Cmd, handler *interactive.ShellHandler) error {

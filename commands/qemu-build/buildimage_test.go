@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/taskcluster/slugid-go/slugid"
-	"github.com/taskcluster/taskcluster-worker/runtime"
+	"github.com/walac/taskcluster-worker/runtime"
 )
 
 func TestBuildImage(t *testing.T) {

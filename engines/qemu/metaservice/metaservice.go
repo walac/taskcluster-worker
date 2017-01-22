@@ -11,11 +11,11 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/taskcluster/slugid-go/slugid"
-	"github.com/taskcluster/taskcluster-worker/engines"
-	"github.com/taskcluster/taskcluster-worker/plugins/interactive/shellclient"
-	"github.com/taskcluster/taskcluster-worker/plugins/interactive/shellconsts"
-	"github.com/taskcluster/taskcluster-worker/runtime"
-	"github.com/taskcluster/taskcluster-worker/runtime/ioext"
+	"github.com/walac/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/plugins/interactive/shellclient"
+	"github.com/walac/taskcluster-worker/plugins/interactive/shellconsts"
+	"github.com/walac/taskcluster-worker/runtime"
+	"github.com/walac/taskcluster-worker/runtime/ioext"
 )
 
 // PollTimeout is the maximum amount of time a poll request will be left

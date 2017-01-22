@@ -3,7 +3,7 @@
 // Package main hosts the main function for taskcluter-worker.
 package main
 
-import "github.com/taskcluster/taskcluster-worker/commands"
+import "github.com/walac/taskcluster-worker/commands"
 
 func main() {
 	commands.Run(nil)

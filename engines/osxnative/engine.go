@@ -7,7 +7,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	schematypes "github.com/taskcluster/go-schematypes"
-	"github.com/taskcluster/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/engines"
 )
 
 type engine struct {

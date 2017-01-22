@@ -5,7 +5,7 @@ import (
 	"io"
 	"net"
 
-	"github.com/taskcluster/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/engines"
 )
 
 // socketDisplayProvider is a trivial implementation of

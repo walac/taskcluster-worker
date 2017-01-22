@@ -11,9 +11,9 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/taskcluster/taskcluster-worker/plugins/interactive/pty"
-	"github.com/taskcluster/taskcluster-worker/runtime/atomics"
-	"github.com/taskcluster/taskcluster-worker/runtime/ioext"
+	"github.com/walac/taskcluster-worker/plugins/interactive/pty"
+	"github.com/walac/taskcluster-worker/runtime/atomics"
+	"github.com/walac/taskcluster-worker/runtime/ioext"
 )
 
 const systemPKill = "/usr/bin/pkill"

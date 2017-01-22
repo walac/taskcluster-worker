@@ -6,7 +6,7 @@ import (
 	"os"
 	osuser "os/user"
 
-	"github.com/taskcluster/taskcluster-worker/runtime"
+	"github.com/walac/taskcluster-worker/runtime"
 )
 
 // Get the child process working.

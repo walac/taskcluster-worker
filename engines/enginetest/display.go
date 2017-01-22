@@ -6,8 +6,8 @@ import (
 	"sync"
 
 	vnc "github.com/mitchellh/go-vnc"
-	"github.com/taskcluster/taskcluster-worker/engines"
-	"github.com/taskcluster/taskcluster-worker/runtime/ioext"
+	"github.com/walac/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/runtime/ioext"
 )
 
 // The DisplayTestCase contains information sufficient to test the interactive

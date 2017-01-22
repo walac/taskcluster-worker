@@ -1,6 +1,6 @@
 package scriptengine
 
-import "github.com/taskcluster/taskcluster-worker/engines"
+import "github.com/walac/taskcluster-worker/engines"
 
 type resultSet struct {
 	engines.ResultSetBase

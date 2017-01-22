@@ -10,12 +10,12 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	schematypes "github.com/taskcluster/go-schematypes"
-	"github.com/taskcluster/taskcluster-worker/engines"
-	"github.com/taskcluster/taskcluster-worker/plugins"
-	"github.com/taskcluster/taskcluster-worker/runtime"
-	"github.com/taskcluster/taskcluster-worker/runtime/atomics"
-	"github.com/taskcluster/taskcluster-worker/runtime/gc"
-	"github.com/taskcluster/taskcluster-worker/runtime/webhookserver"
+	"github.com/walac/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/plugins"
+	"github.com/walac/taskcluster-worker/runtime"
+	"github.com/walac/taskcluster-worker/runtime/atomics"
+	"github.com/walac/taskcluster-worker/runtime/gc"
+	"github.com/walac/taskcluster-worker/runtime/webhookserver"
 )
 
 // Worker is the center of taskcluster-worker and is responsible for managing resources, tasks,

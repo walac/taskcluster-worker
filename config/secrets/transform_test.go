@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/taskcluster/taskcluster-worker/config/configtest"
+	"github.com/walac/taskcluster-worker/config/configtest"
 )
 
 func TestSecretsTransform(t *testing.T) {

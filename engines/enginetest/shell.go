@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/taskcluster/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/engines"
 )
 
 // The ShellTestCase contains information sufficient to test the interactive

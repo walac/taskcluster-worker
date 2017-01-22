@@ -13,14 +13,14 @@ import (
 
 	"github.com/cespare/cp"
 	"github.com/taskcluster/slugid-go/slugid"
-	"github.com/taskcluster/taskcluster-worker/engines/qemu/image"
-	"github.com/taskcluster/taskcluster-worker/engines/qemu/metaservice"
-	"github.com/taskcluster/taskcluster-worker/engines/qemu/network"
-	"github.com/taskcluster/taskcluster-worker/engines/qemu/vm"
-	"github.com/taskcluster/taskcluster-worker/plugins/interactive"
-	"github.com/taskcluster/taskcluster-worker/runtime"
-	"github.com/taskcluster/taskcluster-worker/runtime/gc"
-	"github.com/taskcluster/taskcluster-worker/runtime/util"
+	"github.com/walac/taskcluster-worker/engines/qemu/image"
+	"github.com/walac/taskcluster-worker/engines/qemu/metaservice"
+	"github.com/walac/taskcluster-worker/engines/qemu/network"
+	"github.com/walac/taskcluster-worker/engines/qemu/vm"
+	"github.com/walac/taskcluster-worker/plugins/interactive"
+	"github.com/walac/taskcluster-worker/runtime"
+	"github.com/walac/taskcluster-worker/runtime/gc"
+	"github.com/walac/taskcluster-worker/runtime/util"
 )
 
 var debug = util.Debug("qemurun")

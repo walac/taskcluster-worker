@@ -8,7 +8,7 @@ import (
 
 	got "github.com/taskcluster/go-got"
 	schematypes "github.com/taskcluster/go-schematypes"
-	"github.com/taskcluster/taskcluster-worker/runtime/ioext"
+	"github.com/walac/taskcluster-worker/runtime/ioext"
 )
 
 // Maximum number of retries when fetching a URL

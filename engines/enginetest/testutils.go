@@ -10,10 +10,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/taskcluster/taskcluster-worker/engines"
-	"github.com/taskcluster/taskcluster-worker/runtime"
-	"github.com/taskcluster/taskcluster-worker/runtime/gc"
-	"github.com/taskcluster/taskcluster-worker/runtime/util"
+	"github.com/walac/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/runtime"
+	"github.com/walac/taskcluster-worker/runtime/gc"
+	"github.com/walac/taskcluster-worker/runtime/util"
 )
 
 var debug = util.Debug("enginetest")

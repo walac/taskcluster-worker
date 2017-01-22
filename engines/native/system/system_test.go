@@ -13,8 +13,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/taskcluster/slugid-go/slugid"
-	"github.com/taskcluster/taskcluster-worker/runtime/atomics"
-	"github.com/taskcluster/taskcluster-worker/runtime/ioext"
+	"github.com/walac/taskcluster-worker/runtime/atomics"
+	"github.com/walac/taskcluster-worker/runtime/ioext"
 )
 
 // Note: Constants testGroup, testCat, testTrue, testFalse, testPrintDir, and

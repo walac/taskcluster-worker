@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/taskcluster/taskcluster-worker/plugins/interactive/displayconsts"
+	"github.com/walac/taskcluster-worker/plugins/interactive/displayconsts"
 )
 
 // DisplayClient implements io.Reader, io.Writer and io.Closer for a VNC

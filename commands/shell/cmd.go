@@ -8,10 +8,10 @@ import (
 
 	"github.com/gorilla/websocket"
 	isatty "github.com/mattn/go-isatty"
-	"github.com/taskcluster/taskcluster-worker/commands"
-	"github.com/taskcluster/taskcluster-worker/plugins/interactive/shellclient"
-	"github.com/taskcluster/taskcluster-worker/plugins/interactive/shellconsts"
-	"github.com/taskcluster/taskcluster-worker/runtime/ioext"
+	"github.com/walac/taskcluster-worker/commands"
+	"github.com/walac/taskcluster-worker/plugins/interactive/shellclient"
+	"github.com/walac/taskcluster-worker/plugins/interactive/shellconsts"
+	"github.com/walac/taskcluster-worker/runtime/ioext"
 )
 
 func init() {

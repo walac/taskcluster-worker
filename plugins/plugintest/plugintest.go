@@ -12,14 +12,14 @@ import (
 
 	"github.com/taskcluster/slugid-go/slugid"
 
-	"github.com/taskcluster/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/engines"
 	// Ensure we load the mock engine
-	_ "github.com/taskcluster/taskcluster-worker/engines/mock"
-	"github.com/taskcluster/taskcluster-worker/plugins"
-	"github.com/taskcluster/taskcluster-worker/runtime"
-	"github.com/taskcluster/taskcluster-worker/runtime/client"
-	"github.com/taskcluster/taskcluster-worker/runtime/gc"
-	"github.com/taskcluster/taskcluster-worker/runtime/webhookserver"
+	_ "github.com/walac/taskcluster-worker/engines/mock"
+	"github.com/walac/taskcluster-worker/plugins"
+	"github.com/walac/taskcluster-worker/runtime"
+	"github.com/walac/taskcluster-worker/runtime/client"
+	"github.com/walac/taskcluster-worker/runtime/gc"
+	"github.com/walac/taskcluster-worker/runtime/webhookserver"
 )
 
 // The Options contains options available to any of the

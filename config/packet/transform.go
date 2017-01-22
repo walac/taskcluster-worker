@@ -19,7 +19,7 @@ import (
 	"fmt"
 
 	got "github.com/taskcluster/go-got"
-	"github.com/taskcluster/taskcluster-worker/config"
+	"github.com/walac/taskcluster-worker/config"
 )
 
 const defaultPacketMetaDataURL = "https://metadata.packet.net/metadata"

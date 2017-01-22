@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/taskcluster/taskcluster-worker/config/configtest"
+	"github.com/walac/taskcluster-worker/config/configtest"
 )
 
 const metadataExample = `{

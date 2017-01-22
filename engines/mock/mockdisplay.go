@@ -9,7 +9,7 @@ import (
 
 	"github.com/bradfitz/rfbgo/rfb"
 	"github.com/taskcluster/slugid-go/slugid"
-	"github.com/taskcluster/taskcluster-worker/engines/mock/mocknet"
+	"github.com/walac/taskcluster-worker/engines/mock/mocknet"
 )
 
 const (

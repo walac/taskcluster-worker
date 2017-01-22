@@ -10,11 +10,11 @@ import (
 
 	vnc "github.com/mitchellh/go-vnc"
 	"github.com/taskcluster/slugid-go/slugid"
-	"github.com/taskcluster/taskcluster-worker/plugins/interactive/displayclient"
-	"github.com/taskcluster/taskcluster-worker/plugins/interactive/shellclient"
-	"github.com/taskcluster/taskcluster-worker/plugins/plugintest"
-	"github.com/taskcluster/taskcluster-worker/runtime/client"
-	"github.com/taskcluster/taskcluster-worker/runtime/ioext"
+	"github.com/walac/taskcluster-worker/plugins/interactive/displayclient"
+	"github.com/walac/taskcluster-worker/plugins/interactive/shellclient"
+	"github.com/walac/taskcluster-worker/plugins/plugintest"
+	"github.com/walac/taskcluster-worker/runtime/client"
+	"github.com/walac/taskcluster-worker/runtime/ioext"
 )
 
 type resolution struct {

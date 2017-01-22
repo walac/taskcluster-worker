@@ -14,10 +14,10 @@ import (
 	"github.com/taskcluster/slugid-go/slugid"
 	"github.com/taskcluster/taskcluster-client-go"
 	"github.com/taskcluster/taskcluster-client-go/queue"
-	"github.com/taskcluster/taskcluster-worker/engines"
-	"github.com/taskcluster/taskcluster-worker/plugins"
-	"github.com/taskcluster/taskcluster-worker/runtime"
-	"github.com/taskcluster/taskcluster-worker/runtime/client"
+	"github.com/walac/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/plugins"
+	"github.com/walac/taskcluster-worker/runtime"
+	"github.com/walac/taskcluster-worker/runtime/client"
 )
 
 var logger, _ = runtime.CreateLogger(os.Getenv("LOGGING_LEVEL"))

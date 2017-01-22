@@ -13,8 +13,8 @@
 package success
 
 import (
-	"github.com/taskcluster/taskcluster-worker/engines"
-	"github.com/taskcluster/taskcluster-worker/plugins"
+	"github.com/walac/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/plugins"
 )
 
 type pluginProvider struct {

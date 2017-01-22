@@ -3,7 +3,7 @@ package env
 import (
 	"testing"
 
-	"github.com/taskcluster/taskcluster-worker/plugins/plugintest"
+	"github.com/walac/taskcluster-worker/plugins/plugintest"
 )
 
 func TestEnvNone(*testing.T) {

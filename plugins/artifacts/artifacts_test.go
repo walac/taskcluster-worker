@@ -9,8 +9,8 @@ import (
 
 	"github.com/taskcluster/slugid-go/slugid"
 	"github.com/taskcluster/taskcluster-client-go/queue"
-	"github.com/taskcluster/taskcluster-worker/plugins/plugintest"
-	"github.com/taskcluster/taskcluster-worker/runtime/client"
+	"github.com/walac/taskcluster-worker/plugins/plugintest"
+	"github.com/walac/taskcluster-worker/runtime/client"
 )
 
 type artifactTestCase struct {

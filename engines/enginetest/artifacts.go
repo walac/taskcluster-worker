@@ -7,8 +7,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/taskcluster/taskcluster-worker/engines"
-	"github.com/taskcluster/taskcluster-worker/runtime/ioext"
+	"github.com/walac/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/runtime/ioext"
 )
 
 // The ArtifactTestCase contains information sufficient to test artifact

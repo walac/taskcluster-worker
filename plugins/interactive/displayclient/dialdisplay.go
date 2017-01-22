@@ -6,8 +6,8 @@ import (
 	"net/url"
 
 	"github.com/gorilla/websocket"
-	"github.com/taskcluster/taskcluster-worker/plugins/interactive/displayconsts"
-	"github.com/taskcluster/taskcluster-worker/runtime/ioext"
+	"github.com/walac/taskcluster-worker/plugins/interactive/displayconsts"
+	"github.com/walac/taskcluster-worker/runtime/ioext"
 )
 
 var dialer = websocket.Dialer{

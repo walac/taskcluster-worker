@@ -7,9 +7,9 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/gorilla/websocket"
-	"github.com/taskcluster/taskcluster-worker/engines"
-	"github.com/taskcluster/taskcluster-worker/plugins/interactive/shellconsts"
-	"github.com/taskcluster/taskcluster-worker/runtime/ioext"
+	"github.com/walac/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/plugins/interactive/shellconsts"
+	"github.com/walac/taskcluster-worker/runtime/ioext"
 )
 
 // ShellFactory is a function that can make a shell

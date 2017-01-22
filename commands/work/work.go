@@ -5,9 +5,9 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/taskcluster/taskcluster-worker/commands"
-	"github.com/taskcluster/taskcluster-worker/config"
-	"github.com/taskcluster/taskcluster-worker/worker"
+	"github.com/walac/taskcluster-worker/commands"
+	"github.com/walac/taskcluster-worker/config"
+	"github.com/walac/taskcluster-worker/worker"
 )
 
 func init() {

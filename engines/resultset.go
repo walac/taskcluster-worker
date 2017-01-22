@@ -1,7 +1,7 @@
 package engines
 
 import (
-	"github.com/taskcluster/taskcluster-worker/runtime/ioext"
+	"github.com/walac/taskcluster-worker/runtime/ioext"
 )
 
 // FileHandler is given as callback when iterating through a list of files.

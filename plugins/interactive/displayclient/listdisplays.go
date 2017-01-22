@@ -8,7 +8,7 @@ import (
 	"time"
 
 	got "github.com/taskcluster/go-got"
-	"github.com/taskcluster/taskcluster-worker/plugins/interactive/displayconsts"
+	"github.com/walac/taskcluster-worker/plugins/interactive/displayconsts"
 )
 
 // A Display structure holds information about a display returned from

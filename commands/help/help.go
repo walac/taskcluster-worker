@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/taskcluster/taskcluster-worker/commands"
+	"github.com/walac/taskcluster-worker/commands"
 )
 
 func init() {

@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/taskcluster/slugid-go/slugid"
-	"github.com/taskcluster/taskcluster-worker/plugins/plugintest"
-	"github.com/taskcluster/taskcluster-worker/runtime/client"
+	"github.com/walac/taskcluster-worker/plugins/plugintest"
+	"github.com/walac/taskcluster-worker/runtime/client"
 )
 
 func TestLiveLogStreaming(t *testing.T) {

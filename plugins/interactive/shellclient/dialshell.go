@@ -5,7 +5,7 @@ import (
 	"net/url"
 
 	"github.com/gorilla/websocket"
-	"github.com/taskcluster/taskcluster-worker/plugins/interactive/shellconsts"
+	"github.com/walac/taskcluster-worker/plugins/interactive/shellconsts"
 )
 
 var dialer = websocket.Dialer{

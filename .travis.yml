@@ -49,7 +49,7 @@ deploy:
   provider: releases
   skip_cleanup: true
   on:
-    repo: taskcluster/taskcluster-worker
+    repo: walac/taskcluster-worker
     tags: true
 
 # encrpyt channel name to get around issue

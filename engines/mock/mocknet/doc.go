@@ -8,7 +8,7 @@ package mocknet
 import (
 	"sync"
 
-	"github.com/taskcluster/taskcluster-worker/runtime/util"
+	"github.com/walac/taskcluster-worker/runtime/util"
 )
 
 var debug = util.Debug("mocknet")

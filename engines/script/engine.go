@@ -5,8 +5,8 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	schematypes "github.com/taskcluster/go-schematypes"
-	"github.com/taskcluster/taskcluster-worker/engines"
-	"github.com/taskcluster/taskcluster-worker/runtime"
+	"github.com/walac/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/runtime"
 )
 
 type engineProvider struct {

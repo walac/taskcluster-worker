@@ -3,7 +3,7 @@ package qemubuild
 import (
 	"strconv"
 
-	"github.com/taskcluster/taskcluster-worker/runtime"
+	"github.com/walac/taskcluster-worker/runtime"
 )
 
 type cmd struct{}

@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/taskcluster/taskcluster-worker/config/configtest"
+	"github.com/walac/taskcluster-worker/config/configtest"
 )
 
 func TestAbsTransform(t *testing.T) {

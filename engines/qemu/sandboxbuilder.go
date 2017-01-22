@@ -5,10 +5,10 @@ import (
 	"regexp"
 	"sync"
 
-	"github.com/taskcluster/taskcluster-worker/engines"
-	"github.com/taskcluster/taskcluster-worker/engines/qemu/image"
-	"github.com/taskcluster/taskcluster-worker/engines/qemu/network"
-	"github.com/taskcluster/taskcluster-worker/runtime"
+	"github.com/walac/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/engines/qemu/image"
+	"github.com/walac/taskcluster-worker/engines/qemu/network"
+	"github.com/walac/taskcluster-worker/runtime"
 )
 
 type sandboxBuilder struct {

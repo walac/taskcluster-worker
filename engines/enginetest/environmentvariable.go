@@ -3,7 +3,7 @@ package enginetest
 import (
 	"sync"
 
-	"github.com/taskcluster/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/engines"
 )
 
 // The EnvVarTestCase contains information sufficient to setting an environment

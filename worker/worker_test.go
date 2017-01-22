@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	_ "github.com/taskcluster/taskcluster-worker/engines/mock"
+	_ "github.com/walac/taskcluster-worker/engines/mock"
 )
 
 type mockedQueueService struct {

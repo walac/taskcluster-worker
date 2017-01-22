@@ -16,9 +16,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/taskcluster/taskcluster-worker/engines"
-	"github.com/taskcluster/taskcluster-worker/engines/qemu/metaservice"
-	"github.com/taskcluster/taskcluster-worker/runtime"
+	"github.com/walac/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/engines/qemu/metaservice"
+	"github.com/walac/taskcluster-worker/runtime"
 )
 
 func fmtPanic(a ...interface{}) {

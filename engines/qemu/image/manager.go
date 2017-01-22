@@ -9,8 +9,8 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/getsentry/raven-go"
 	"github.com/taskcluster/slugid-go/slugid"
-	"github.com/taskcluster/taskcluster-worker/engines/qemu/vm"
-	"github.com/taskcluster/taskcluster-worker/runtime/gc"
+	"github.com/walac/taskcluster-worker/engines/qemu/vm"
+	"github.com/walac/taskcluster-worker/runtime/gc"
 )
 
 // Manager loads and tracks images.

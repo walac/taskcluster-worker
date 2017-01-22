@@ -10,8 +10,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/taskcluster/taskcluster-worker/engines"
-	"github.com/taskcluster/taskcluster-worker/engines/enginetest"
+	"github.com/walac/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/engines/enginetest"
 )
 
 const testImageFile = "./test-image/tinycore-worker.tar.zst"

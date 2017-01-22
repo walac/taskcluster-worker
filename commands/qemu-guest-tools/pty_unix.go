@@ -9,8 +9,8 @@ import (
 	"unsafe"
 
 	"github.com/kr/pty"
-	"github.com/taskcluster/taskcluster-worker/plugins/interactive"
-	"github.com/taskcluster/taskcluster-worker/runtime/ioext"
+	"github.com/walac/taskcluster-worker/plugins/interactive"
+	"github.com/walac/taskcluster-worker/runtime/ioext"
 )
 
 func pipePty(cmd *exec.Cmd, handler *interactive.ShellHandler) error {

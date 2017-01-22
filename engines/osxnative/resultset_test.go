@@ -12,9 +12,9 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	assert "github.com/stretchr/testify/require"
-	"github.com/taskcluster/taskcluster-worker/engines"
-	"github.com/taskcluster/taskcluster-worker/runtime"
-	"github.com/taskcluster/taskcluster-worker/runtime/ioext"
+	"github.com/walac/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/runtime"
+	"github.com/walac/taskcluster-worker/runtime/ioext"
 )
 
 type testCase struct {

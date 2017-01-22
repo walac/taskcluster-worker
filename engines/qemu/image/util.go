@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/taskcluster/go-got"
-	"github.com/taskcluster/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/engines"
 )
 
 // copyFile copies source to destination.

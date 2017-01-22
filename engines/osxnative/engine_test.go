@@ -5,7 +5,7 @@ package osxnative
 import (
 	t "testing"
 
-	"github.com/taskcluster/taskcluster-worker/engines/enginetest"
+	"github.com/walac/taskcluster-worker/engines/enginetest"
 )
 
 var provider = enginetest.EngineProvider{

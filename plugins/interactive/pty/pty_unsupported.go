@@ -6,7 +6,7 @@ import (
 	"io"
 	"os/exec"
 
-	"github.com/taskcluster/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/engines"
 )
 
 // Supported is true, if PTY is supported on the given platform

@@ -3,8 +3,8 @@ package daemon
 import (
 	"github.com/Sirupsen/logrus"
 	"github.com/takama/daemon"
-	"github.com/taskcluster/taskcluster-worker/config"
-	"github.com/taskcluster/taskcluster-worker/worker"
+	"github.com/walac/taskcluster-worker/config"
+	"github.com/walac/taskcluster-worker/worker"
 )
 
 // service has embedded daemon

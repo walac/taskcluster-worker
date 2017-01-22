@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/taskcluster/taskcluster-worker/engines/enginetest"
+	"github.com/walac/taskcluster-worker/engines/enginetest"
 )
 
 var provider = &enginetest.EngineProvider{

@@ -9,9 +9,9 @@ import (
 
 	graceful "gopkg.in/tylerb/graceful.v1"
 
-	"github.com/taskcluster/taskcluster-worker/commands"
-	"github.com/taskcluster/taskcluster-worker/plugins/interactive"
-	"github.com/taskcluster/taskcluster-worker/runtime"
+	"github.com/walac/taskcluster-worker/commands"
+	"github.com/walac/taskcluster-worker/plugins/interactive"
+	"github.com/walac/taskcluster-worker/runtime"
 )
 
 var defaultShell = "sh"

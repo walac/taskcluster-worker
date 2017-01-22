@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 
 	schematypes "github.com/taskcluster/go-schematypes"
-	"github.com/taskcluster/taskcluster-worker/worker"
+	"github.com/walac/taskcluster-worker/worker"
 
 	yaml "gopkg.in/yaml.v2"
 )

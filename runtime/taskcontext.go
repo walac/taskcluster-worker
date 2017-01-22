@@ -12,9 +12,9 @@ import (
 	"sync"
 
 	"github.com/taskcluster/taskcluster-client-go"
-	"github.com/taskcluster/taskcluster-worker/runtime/client"
-	"github.com/taskcluster/taskcluster-worker/runtime/ioext"
-	"github.com/taskcluster/taskcluster-worker/runtime/webhookserver"
+	"github.com/walac/taskcluster-worker/runtime/client"
+	"github.com/walac/taskcluster-worker/runtime/ioext"
+	"github.com/walac/taskcluster-worker/runtime/webhookserver"
 
 	"gopkg.in/djherbis/stream.v1"
 )

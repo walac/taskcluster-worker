@@ -2,7 +2,7 @@ package engines
 
 import (
 	schematypes "github.com/taskcluster/go-schematypes"
-	"github.com/taskcluster/taskcluster-worker/runtime"
+	"github.com/walac/taskcluster-worker/runtime"
 )
 
 // The SandboxOptions structure is a wrapper around the options/arguments for

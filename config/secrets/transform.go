@@ -15,7 +15,7 @@ import (
 
 	"github.com/taskcluster/taskcluster-client-go"
 	"github.com/taskcluster/taskcluster-client-go/secrets"
-	"github.com/taskcluster/taskcluster-worker/config"
+	"github.com/walac/taskcluster-worker/config"
 )
 
 type provider struct{}

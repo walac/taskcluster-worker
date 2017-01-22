@@ -5,7 +5,7 @@ package enginetest
 import (
 	"sync"
 
-	"github.com/taskcluster/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/engines"
 )
 
 // A VolumeTestCase holds information necessary to run tests that an engine

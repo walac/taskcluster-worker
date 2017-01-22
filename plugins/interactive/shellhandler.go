@@ -8,9 +8,9 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/gorilla/websocket"
-	"github.com/taskcluster/taskcluster-worker/plugins/interactive/shellconsts"
-	"github.com/taskcluster/taskcluster-worker/runtime/atomics"
-	"github.com/taskcluster/taskcluster-worker/runtime/ioext"
+	"github.com/walac/taskcluster-worker/plugins/interactive/shellconsts"
+	"github.com/walac/taskcluster-worker/runtime/atomics"
+	"github.com/walac/taskcluster-worker/runtime/ioext"
 )
 
 // ShellHandler handles a websocket and exposes a reader for stdin, and writers

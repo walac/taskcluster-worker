@@ -1,6 +1,6 @@
 package osxnative
 
-import "github.com/taskcluster/taskcluster-worker/engines"
+import "github.com/walac/taskcluster-worker/engines"
 
 func init() {
 	// Register the mac engine as an import side-effect

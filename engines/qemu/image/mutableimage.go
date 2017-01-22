@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/taskcluster/taskcluster-worker/engines/qemu/vm"
+	"github.com/walac/taskcluster-worker/engines/qemu/vm"
 )
 
 // MutableImage is an vm.MutableImage implementation that keeps the image

@@ -3,6 +3,6 @@
 // plugins and engines, and we can re-use the download logic.
 package fetcher
 
-import "github.com/taskcluster/taskcluster-worker/runtime/util"
+import "github.com/walac/taskcluster-worker/runtime/util"
 
 var debug = util.Debug("fetcher")

@@ -10,8 +10,8 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/gorilla/websocket"
-	"github.com/taskcluster/taskcluster-worker/engines"
-	"github.com/taskcluster/taskcluster-worker/plugins/interactive/displayconsts"
+	"github.com/walac/taskcluster-worker/engines"
+	"github.com/walac/taskcluster-worker/plugins/interactive/displayconsts"
 )
 
 // A DisplayProvider is an object that supplies displays. This is a subset of

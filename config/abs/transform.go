@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/taskcluster/taskcluster-worker/config"
+	"github.com/walac/taskcluster-worker/config"
 )
 
 type provider struct{}

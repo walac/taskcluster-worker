@@ -3,7 +3,7 @@ package maxruntime
 import (
 	"testing"
 
-	"github.com/taskcluster/taskcluster-worker/plugins/plugintest"
+	"github.com/walac/taskcluster-worker/plugins/plugintest"
 )
 
 func TestMaxRunRimeSuccess(t *testing.T) {
